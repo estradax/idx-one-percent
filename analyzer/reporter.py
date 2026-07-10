@@ -38,6 +38,28 @@ def format_change_pct(prev: float, curr: float) -> str:
     return f"[red]{pct:,.2f}%[/red]"
 
 
+def _format_lot_value(shares: float) -> str:
+    """Format share count into lot units (1 lot = 100 shares)."""
+    lots = shares / 100.0
+    if lots.is_integer():
+        return f"{lots:,.0f}"
+    return f"{lots:,.2f}".rstrip("0").rstrip(".")
+
+
+def _format_net_change_lot(diff: float) -> str:
+    """Format net change in shares to styled lot units."""
+    lots = diff / 100.0
+    if lots == 0:
+        return "0"
+    if lots.is_integer():
+        formatted = f"{lots:,.0f}"
+    else:
+        formatted = f"{lots:,.2f}".rstrip("0").rstrip(".")
+    if lots > 0:
+        return f"[green]+{formatted}[/green]"
+    return f"[red]{formatted}[/red]"
+
+
 def render_dashboard(
     title: str,
     active_stocks_count: int,
@@ -134,8 +156,11 @@ def render_dashboard(
             table_changes.add_column("Stock", style="cyan", justify="left")
             table_changes.add_column("Investor Name", style="white", justify="left")
             table_changes.add_column("Previous Shares", justify="right")
+            table_changes.add_column("Previous Lot", justify="right")
             table_changes.add_column("Current Shares", justify="right")
-            table_changes.add_column("Net Change", justify="right")
+            table_changes.add_column("Current Lot", justify="right")
+            table_changes.add_column("Net Change Shares", justify="right")
+            table_changes.add_column("Net Change Lot", justify="right")
             table_changes.add_column("% Change", justify="right")
 
             for _, r in combined_changes.iterrows():
@@ -145,8 +170,11 @@ def render_dashboard(
                     str(r["SHARE_CODE"]),
                     str(r["INVESTOR_NAME"]),
                     f"{r['TOTAL_HOLDING_SHARES_prev']:,.0f}",
+                    _format_lot_value(float(r["TOTAL_HOLDING_SHARES_prev"])),
                     f"{r['TOTAL_HOLDING_SHARES_curr']:,.0f}",
+                    _format_lot_value(float(r["TOTAL_HOLDING_SHARES_curr"])),
                     diff_str,
+                    _format_net_change_lot(diff_val),
                     format_change_pct(float(r["TOTAL_HOLDING_SHARES_prev"]), float(r["TOTAL_HOLDING_SHARES_curr"])),
                 )
             console.print(table_changes)
