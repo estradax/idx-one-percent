@@ -1,8 +1,7 @@
 """Data loading, parsing, and cleaning logic for IDX shareholder data."""
 
-from datetime import datetime
 import re
-from typing import Tuple
+from datetime import datetime
 
 import openpyxl
 import pandas as pd
@@ -16,7 +15,7 @@ __all__ = [
 ]
 
 
-def parse_filename_date(filename: str) -> Tuple[datetime, str]:
+def parse_filename_date(filename: str) -> tuple[datetime, str]:
     """Parse the date from filename in the format 'DD-Month-YYYY.xlsx'.
 
     Args:
@@ -58,9 +57,7 @@ def clean_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     for col in string_cols:
         if col in cleaned.columns:
             cleaned[col] = cleaned[col].apply(
-                lambda x: "TRUE"
-                if x is True
-                else ("FALSE" if x is False else str(x).strip() if pd.notna(x) else "")
+                lambda x: "TRUE" if x is True else ("FALSE" if x is False else str(x).strip() if pd.notna(x) else "")
             )
 
     # Standardize numeric fields
@@ -89,6 +86,6 @@ def load_excel_file(filepath: str) -> pd.DataFrame:
         return pd.DataFrame()
 
     headers = rows[0]
-    data = [dict(zip(headers, r)) for r in rows[1:] if any(r is not None for r in r)]
+    data = [dict(zip(headers, r, strict=False)) for r in rows[1:] if any(r is not None for r in r)]
     df = pd.DataFrame(data)
     return clean_dataframe(df)

@@ -1,12 +1,10 @@
 """Terminal dashboard rendering for IDX shareholder data comparison."""
 
-from typing import Set
-
 import pandas as pd
+from rich.align import Align
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
-from rich.align import Align
 
 __all__ = [
     "format_change_pct",
@@ -46,8 +44,8 @@ def render_dashboard(
     increases: pd.DataFrame,
     decreases: pd.DataFrame,
     transfers: pd.DataFrame,
-    new_stocks: Set[str],
-    removed_stocks: Set[str],
+    new_stocks: set[str],
+    removed_stocks: set[str],
 ) -> None:
     """Render a beautiful CLI dashboard showing period comparison metrics.
 
@@ -62,56 +60,48 @@ def render_dashboard(
         new_stocks: Newly listed stock symbols.
         removed_stocks: Delisted stock symbols.
     """
-    console.print(
-        Panel(Align.center(f"[bold white]{title}[/bold white]"),
-              expand=True,
-              border_style="cyan"))
+    console.print(Panel(Align.center(f"[bold white]{title}[/bold white]"), expand=True, border_style="cyan"))
 
     # Consolidate all changes (entries, exits, increases, decreases, and name changes with non-zero differences)
     dfs_to_combine = []
 
     if not entries.empty:
-        dfs_to_combine.append(entries[[
-            "SHARE_CODE", "INVESTOR_NAME", "TOTAL_HOLDING_SHARES_prev",
-            "TOTAL_HOLDING_SHARES_curr", "diff"
-        ]])
+        dfs_to_combine.append(
+            entries[["SHARE_CODE", "INVESTOR_NAME", "TOTAL_HOLDING_SHARES_prev", "TOTAL_HOLDING_SHARES_curr", "diff"]]
+        )
 
     if not increases.empty:
-        dfs_to_combine.append(increases[[
-            "SHARE_CODE", "INVESTOR_NAME", "TOTAL_HOLDING_SHARES_prev",
-            "TOTAL_HOLDING_SHARES_curr", "diff"
-        ]])
+        dfs_to_combine.append(
+            increases[["SHARE_CODE", "INVESTOR_NAME", "TOTAL_HOLDING_SHARES_prev", "TOTAL_HOLDING_SHARES_curr", "diff"]]
+        )
 
     if not transfers.empty:
         # Include resolved transfers that have a net holding difference
         df_tr_diff = transfers[transfers["diff"] != 0].copy()
         if not df_tr_diff.empty:
             df_tr_diff["INVESTOR_NAME"] = df_tr_diff.apply(
-                lambda r:
-                f"{r['INVESTOR_NAME_curr']} [dim](formerly {r['INVESTOR_NAME_prev']})[/dim]",
-                axis=1)
-            dfs_to_combine.append(df_tr_diff[[
-                "SHARE_CODE", "INVESTOR_NAME", "TOTAL_HOLDING_SHARES_prev",
-                "TOTAL_HOLDING_SHARES_curr", "diff"
-            ]])
+                lambda r: f"{r['INVESTOR_NAME_curr']} [dim](formerly {r['INVESTOR_NAME_prev']})[/dim]", axis=1
+            )
+            dfs_to_combine.append(
+                df_tr_diff[
+                    ["SHARE_CODE", "INVESTOR_NAME", "TOTAL_HOLDING_SHARES_prev", "TOTAL_HOLDING_SHARES_curr", "diff"]
+                ]
+            )
 
     if not decreases.empty:
-        dfs_to_combine.append(decreases[[
-            "SHARE_CODE", "INVESTOR_NAME", "TOTAL_HOLDING_SHARES_prev",
-            "TOTAL_HOLDING_SHARES_curr", "diff"
-        ]])
+        dfs_to_combine.append(
+            decreases[["SHARE_CODE", "INVESTOR_NAME", "TOTAL_HOLDING_SHARES_prev", "TOTAL_HOLDING_SHARES_curr", "diff"]]
+        )
 
     if not exits.empty:
-        dfs_to_combine.append(exits[[
-            "SHARE_CODE", "INVESTOR_NAME", "TOTAL_HOLDING_SHARES_prev",
-            "TOTAL_HOLDING_SHARES_curr", "diff"
-        ]])
+        dfs_to_combine.append(
+            exits[["SHARE_CODE", "INVESTOR_NAME", "TOTAL_HOLDING_SHARES_prev", "TOTAL_HOLDING_SHARES_curr", "diff"]]
+        )
 
     if dfs_to_combine:
         combined_changes = pd.concat(dfs_to_combine)
         # Sort from most added shares (largest positive diff) to most decreased shares (largest negative diff)
-        combined_changes = combined_changes.sort_values(
-            by="diff", ascending=False).reset_index(drop=True)
+        combined_changes = combined_changes.sort_values(by="diff", ascending=False).reset_index(drop=True)
     else:
         combined_changes = pd.DataFrame()
 
@@ -123,9 +113,7 @@ def render_dashboard(
             border_style="blue",
         )
         table_changes.add_column("Stock", style="cyan", justify="left")
-        table_changes.add_column("Investor Name",
-                                 style="white",
-                                 justify="left")
+        table_changes.add_column("Investor Name", style="white", justify="left")
         table_changes.add_column("Previous Shares", justify="right")
         table_changes.add_column("Current Shares", justify="right")
         table_changes.add_column("Net Change", justify="right")
@@ -133,16 +121,14 @@ def render_dashboard(
 
         for _, r in combined_changes.iterrows():
             diff_val = float(r["diff"])
-            diff_str = (f"[green]+{diff_val:,.0f}[/green]"
-                        if diff_val > 0 else f"[red]{diff_val:,.0f}[/red]")
+            diff_str = f"[green]+{diff_val:,.0f}[/green]" if diff_val > 0 else f"[red]{diff_val:,.0f}[/red]"
             table_changes.add_row(
                 str(r["SHARE_CODE"]),
                 str(r["INVESTOR_NAME"]),
                 f"{r['TOTAL_HOLDING_SHARES_prev']:,.0f}",
                 f"{r['TOTAL_HOLDING_SHARES_curr']:,.0f}",
                 diff_str,
-                format_change_pct(float(r["TOTAL_HOLDING_SHARES_prev"]),
-                                  float(r["TOTAL_HOLDING_SHARES_curr"])),
+                format_change_pct(float(r["TOTAL_HOLDING_SHARES_prev"]), float(r["TOTAL_HOLDING_SHARES_curr"])),
             )
         console.print(table_changes)
         console.print()
@@ -162,8 +148,7 @@ def render_dashboard(
             table_trans.add_column("Holding Shares", justify="right")
 
             # Sort by holding size to show most prominent ones
-            top_transfers = transfers_no_diff.sort_values(
-                by="TOTAL_HOLDING_SHARES_curr", ascending=False)
+            top_transfers = transfers_no_diff.sort_values(by="TOTAL_HOLDING_SHARES_curr", ascending=False)
             for _, r in top_transfers.iterrows():
                 table_trans.add_row(
                     str(r["SHARE_CODE"]),
