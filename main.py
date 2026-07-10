@@ -6,8 +6,8 @@ resolution engine, and rendering the results in the terminal.
 """
 
 import os
+from collections.abc import Iterable
 from datetime import datetime
-from typing import Iterable, Optional
 
 import pandas as pd
 from rich.align import Align
@@ -26,7 +26,7 @@ from analyzer.reporter import console
 def search_dataframes(
     dfs: dict[str, pd.DataFrame],
     query: str,
-    previous_periods: Optional[dict[str, pd.DataFrame]] = None,
+    previous_periods: dict[str, pd.DataFrame] | None = None,
 ) -> list[tuple[str, pd.DataFrame]]:
     """Search loaded dataframes across common shareholder columns for a keyword and enrich them with prior-period values."""
     if not query.strip():
@@ -95,9 +95,7 @@ def render_search_results(matches: Iterable[tuple[str, pd.DataFrame]]) -> None:
         for _, row in df.iterrows():
             period_label = filename.replace(".xlsx", "")
             prev_shares = float(row.get("TOTAL_HOLDING_SHARES_prev", row.get("TOTAL_HOLDING_SHARES", 0.0)) or 0.0)
-            curr_shares = float(
-                row.get("TOTAL_HOLDING_SHARES_curr", row.get("TOTAL_HOLDING_SHARES", 0.0)) or 0.0
-            )
+            curr_shares = float(row.get("TOTAL_HOLDING_SHARES_curr", row.get("TOTAL_HOLDING_SHARES", 0.0)) or 0.0)
             diff = curr_shares - prev_shares
             pct = ((diff / prev_shares) * 100) if prev_shares else (0.0 if diff == 0 else 100.0)
             lots = diff / 100.0
@@ -136,7 +134,11 @@ def filter_comparison_frames(
         if frame.empty:
             return frame
 
-        columns = [col for col in ["SHARE_CODE", "INVESTOR_NAME", "INVESTOR_NAME_prev", "INVESTOR_NAME_curr", "ISSUER_NAME"] if col in frame.columns]
+        columns = [
+            col
+            for col in ["SHARE_CODE", "INVESTOR_NAME", "INVESTOR_NAME_prev", "INVESTOR_NAME_curr", "ISSUER_NAME"]
+            if col in frame.columns
+        ]
         if not columns:
             return frame.iloc[0:0].copy()
 
