@@ -1,7 +1,7 @@
 [project]
 name = "idx-one-percent"
 version = "0.1.0"
-description = "Add your description here"
+description = "A command-line tool to parse, compare, and track IDX shareholder reports over time."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
