@@ -10,7 +10,6 @@ from datetime import datetime
 
 import pandas as pd
 from rich.align import Align
-from rich.console import Console
 from rich.panel import Panel
 
 from analyzer import (
@@ -19,8 +18,7 @@ from analyzer import (
     render_dashboard,
     run_comparison,
 )
-
-console = Console()
+from analyzer.reporter import console
 
 
 def compare_and_render(
@@ -28,6 +26,7 @@ def compare_and_render(
     period2: tuple[datetime, str, str],
     data_dir: str,
     loaded_dfs: dict[str, pd.DataFrame],
+    pager: bool = True,
 ) -> None:
     """Run comparison between two periods and render the dashboard.
 
@@ -36,6 +35,7 @@ def compare_and_render(
         period2: End period tuple (datetime, filename, month_name).
         data_dir: Directory containing the excel files.
         loaded_dfs: Cached dataframes mapping filename to DataFrame.
+        pager: Whether to use a terminal pager (scrollable view).
     """
     dt1, file1, m1 = period1
     dt2, file2, m2 = period2
@@ -70,11 +70,22 @@ def compare_and_render(
         transfers=transfers,
         new_stocks=new_stocks,
         removed_stocks=removed_stocks,
+        pager=pager,
     )
 
 
 def main() -> None:
     """Find, sort, and process all shareholder reports chronologically, prompting the user for selection."""
+    # Ensure terminal pager (e.g. less) renders colors correctly
+    if "LESS" in os.environ:
+        if "R" not in os.environ["LESS"]:
+            os.environ["LESS"] += "R"
+    else:
+        os.environ["LESS"] = "-R"
+
+    if "PAGER" not in os.environ and "MANPAGER" not in os.environ:
+        os.environ["PAGER"] = "less -R"
+
     # Find files relative to script or standard workspace
     script_dir = os.path.dirname(os.path.abspath(__file__))
     data_dir = os.path.join(script_dir, "onepercent-data")
@@ -136,12 +147,13 @@ def main() -> None:
 
             if 1 <= choice <= len(transitions):
                 idx, period1, period2 = transitions[choice - 1]
-                compare_and_render(period1, period2, data_dir, loaded_dfs)
+                compare_and_render(period1, period2, data_dir, loaded_dfs, pager=True)
                 console.input("\n[bold dim]Press Enter to return to the menu...[/bold dim]")
             elif choice == len(transitions) + 1:
                 # Compare all chronologically
-                for _, period1, period2 in sorted(transitions, key=lambda x: x[0]):
-                    compare_and_render(period1, period2, data_dir, loaded_dfs)
+                with console.pager(styles=True):
+                    for _, period1, period2 in sorted(transitions, key=lambda x: x[0]):
+                        compare_and_render(period1, period2, data_dir, loaded_dfs, pager=False)
                 console.input("\n[bold dim]Press Enter to return to the menu...[/bold dim]")
             elif choice == len(transitions) + 2:
                 console.print("[bold green]Goodbye![/bold green]")
