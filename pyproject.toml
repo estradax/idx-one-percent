@@ -10,13 +10,11 @@ dependencies = [
     "rich>=15.0.0",
 ]
 
-[project.scripts]
-task = "task:main"
-
 [dependency-groups]
 dev = [
     "mypy>=2.2.0",
     "ruff>=0.15.21",
+    "taskipy>=1.14.1",
 ]
 
 [build-system]
@@ -24,8 +22,14 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-py-modules = ["task", "main"]
+py-modules = ["main"]
 packages = ["analyzer"]
+
+[tool.taskipy.tasks]
+format = "ruff format ."
+lint = "ruff check ."
+typecheck = "mypy ."
+ci = "task format && task lint && task typecheck"
 
 [tool.ruff]
 line-length = 120
