@@ -14,7 +14,12 @@ from rich.align import Align
 from rich.console import Console
 from rich.panel import Panel
 
-from analyzer import load_excel_file, parse_filename_date, render_dashboard, run_comparison
+from analyzer import (
+    load_excel_file,
+    parse_filename_date,
+    render_dashboard,
+    run_comparison,
+)
 
 console = Console()
 
@@ -52,8 +57,8 @@ def compare_and_render(
         return
 
     # Run comparison and entity resolution
-    entries, exits, increases, decreases, transfers, new_stocks, removed_stocks = run_comparison(
-        df1, df2
+    entries, exits, increases, decreases, transfers, new_stocks, removed_stocks = (
+        run_comparison(df1, df2)
     )
 
     # Render dashboard for the period
@@ -84,9 +89,7 @@ def main() -> None:
         data_dir = "./onepercent-data"
 
     if not os.path.exists(data_dir):
-        console.print(
-            f"[bold red]Error: Directory '{data_dir}' not found.[/bold red]"
-        )
+        console.print(f"[bold red]Error: Directory '{data_dir}' not found.[/bold red]")
         return
 
     files = [f for f in os.listdir(data_dir) if f.endswith(".xlsx")]
@@ -106,7 +109,9 @@ def main() -> None:
     sorted_files.sort(key=lambda x: x[0])
 
     # Build the list of consecutive transitions
-    transitions: List[Tuple[int, Tuple[datetime, str, str], Tuple[datetime, str, str]]] = []
+    transitions: List[
+        Tuple[int, Tuple[datetime, str, str], Tuple[datetime, str, str]]
+    ] = []
     for idx in range(len(sorted_files) - 1):
         transitions.append((idx, sorted_files[idx], sorted_files[idx + 1]))
 
@@ -120,10 +125,7 @@ def main() -> None:
         console.clear()
         console.print(
             Panel(
-                Align.center(
-                    "[bold green]IDX Shareholder Data Analyzer[/bold green]\n"
-                    "Select a period comparison to view changes"
-                ),
+                Align.center("[bold green]IDX Shareholder Data Analyzer[/bold green]"),
                 border_style="green",
             )
         )
@@ -131,15 +133,13 @@ def main() -> None:
         console.print("[bold cyan]Available Periods to Compare:[/bold cyan]")
         for i, (idx, (dt1, _, m1), (dt2, _, m2)) in enumerate(transitions, start=1):
             console.print(
-                f"  [bold yellow][{i}][/bold yellow] {m1} {dt1.year} ➔ {m2} {dt2.year}"
+                f"[bold yellow][{i}][/bold yellow] {m1} {dt1.year} ➔ {m2} {dt2.year}"
             )
 
         console.print(
-            f"  [bold yellow][{len(transitions) + 1}][/bold yellow] Compare All Periods"
+            f"[bold yellow][{len(transitions) + 1}][/bold yellow] Compare All Periods"
         )
-        console.print(
-            f"  [bold yellow][{len(transitions) + 2}][/bold yellow] Exit"
-        )
+        console.print(f"[bold yellow][{len(transitions) + 2}][/bold yellow] Exit")
 
         try:
             choice_str = console.input(
@@ -152,12 +152,16 @@ def main() -> None:
             if 1 <= choice <= len(transitions):
                 idx, period1, period2 = transitions[choice - 1]
                 compare_and_render(period1, period2, data_dir, loaded_dfs)
-                console.input("\n[bold dim]Press Enter to return to the menu...[/bold dim]")
+                console.input(
+                    "\n[bold dim]Press Enter to return to the menu...[/bold dim]"
+                )
             elif choice == len(transitions) + 1:
                 # Compare all chronologically
                 for idx, period1, period2 in sorted(transitions, key=lambda x: x[0]):
                     compare_and_render(period1, period2, data_dir, loaded_dfs)
-                console.input("\n[bold dim]Press Enter to return to the menu...[/bold dim]")
+                console.input(
+                    "\n[bold dim]Press Enter to return to the menu...[/bold dim]"
+                )
             elif choice == len(transitions) + 2:
                 console.print("[bold green]Goodbye![/bold green]")
                 break
@@ -167,7 +171,9 @@ def main() -> None:
                 )
                 console.input("\n[bold dim]Press Enter to continue...[/bold dim]")
         except ValueError:
-            console.print("[bold red]Invalid input. Please enter a valid number.[/bold red]")
+            console.print(
+                "[bold red]Invalid input. Please enter a valid number.[/bold red]"
+            )
             console.input("\n[bold dim]Press Enter to continue...[/bold dim]")
 
 
