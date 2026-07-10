@@ -123,47 +123,39 @@ def main() -> None:
     # Cache loaded dataframes to avoid re-reading files multiple times
     loaded_dfs: dict[str, pd.DataFrame] = {}
 
-    while True:
-        console.clear()
-        console.print(
-            Panel(
-                Align.center("[bold green]IDX Shareholder Data Analyzer[/bold green]"),
-                border_style="green",
-            )
+    console.print(
+        Panel(
+            Align.center("[bold green]IDX Shareholder Data Analyzer[/bold green]"),
+            border_style="green",
         )
+    )
 
-        console.print("[bold cyan]Available Periods to Compare:[/bold cyan]")
-        for i, (_, (dt1, _, m1), (dt2, _, m2)) in enumerate(transitions, start=1):
-            console.print(f"[bold yellow][{i}][/bold yellow] {m1} {dt1.year} ➔ {m2} {dt2.year}")
+    console.print("[bold cyan]Available Periods to Compare:[/bold cyan]")
+    for i, (_, (dt1, _, m1), (dt2, _, m2)) in enumerate(transitions, start=1):
+        console.print(f"[bold yellow][{i}][/bold yellow] {m1} {dt1.year} ➔ {m2} {dt2.year}")
 
-        console.print(f"[bold yellow][{len(transitions) + 1}][/bold yellow] Compare All Periods")
-        console.print(f"[bold yellow][{len(transitions) + 2}][/bold yellow] Exit")
+    console.print(f"[bold yellow][{len(transitions) + 1}][/bold yellow] Compare All Periods")
+    console.print(f"[bold yellow][{len(transitions) + 2}][/bold yellow] Exit")
 
-        try:
-            choice_str = console.input(f"\n[bold green]Select option (1-{len(transitions) + 2}): [/bold green]").strip()
-            if not choice_str:
-                continue
+    try:
+        choice_str = console.input(f"\n[bold green]Select option (1-{len(transitions) + 2}): [/bold green]").strip()
+        if choice_str:
             choice = int(choice_str)
 
             if 1 <= choice <= len(transitions):
                 idx, period1, period2 = transitions[choice - 1]
                 compare_and_render(period1, period2, data_dir, loaded_dfs, pager=True)
-                console.input("\n[bold dim]Press Enter to return to the menu...[/bold dim]")
             elif choice == len(transitions) + 1:
                 # Compare all chronologically
                 with console.pager(styles=True):
                     for _, period1, period2 in sorted(transitions, key=lambda x: x[0]):
                         compare_and_render(period1, period2, data_dir, loaded_dfs, pager=False)
-                console.input("\n[bold dim]Press Enter to return to the menu...[/bold dim]")
             elif choice == len(transitions) + 2:
                 console.print("[bold green]Goodbye![/bold green]")
-                break
             else:
                 console.print(f"[bold red]Please enter a valid option between 1 and {len(transitions) + 2}.[/bold red]")
-                console.input("\n[bold dim]Press Enter to continue...[/bold dim]")
-        except ValueError:
-            console.print("[bold red]Invalid input. Please enter a valid number.[/bold red]")
-            console.input("\n[bold dim]Press Enter to continue...[/bold dim]")
+    except ValueError:
+        console.print("[bold red]Invalid input. Please enter a valid number.[/bold red]")
 
 
 if __name__ == "__main__":
