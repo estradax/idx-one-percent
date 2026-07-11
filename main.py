@@ -6,7 +6,7 @@ scanning, comparing, and tracking IDX shareholder reports.
 
 import sys
 
-from analyzer.tui import IDXAnalyzerApp
+from tui import IDXAnalyzerApp
 
 
 def main() -> None:
