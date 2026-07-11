@@ -13,15 +13,7 @@ Screen {
     background: $content-bg;
 }
 
-#header {
-    background: $sidebar-bg;
-    color: $accent;
-    text-align: center;
-    text-style: bold;
-    height: 3;
-    content-align: center middle;
-    border-bottom: solid $border;
-}
+
 
 #footer {
     background: $sidebar-bg;
@@ -37,31 +29,24 @@ Screen {
     layout: vertical;
 }
 
-#sidebar-title {
-    padding: 1 2;
-    text-align: center;
-    background: $sidebar-bg;
-    color: $accent;
-    text-style: bold;
-    border-bottom: solid $border;
-    margin-bottom: 1;
+#sidebar-spacer {
+    height: 1;
+    background: transparent;
 }
+
+
 
 .sidebar-heading {
     padding: 1 2 0 2;
     color: $cyan;
     text-style: bold;
-    background: $sidebar-bg;
+    background: transparent;
 }
 
 #sidebar-menu {
-    background: $sidebar-bg;
+    background: transparent;
     border: none;
     height: 1fr;
-}
-
-#sidebar-menu OptionList {
-    background: $sidebar-bg;
 }
 
 /* Main Content Layout */

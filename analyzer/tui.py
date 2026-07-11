@@ -17,7 +17,6 @@ from textual.widgets import (
     ContentSwitcher,
     DataTable,
     Footer,
-    Header,
     Input,
     Label,
     LoadingIndicator,
@@ -522,10 +521,9 @@ class IDXAnalyzerApp(App[int]):
         self.current_view: str = "loading"
 
     def compose(self) -> ComposeResult:
-        yield Header(id="header")
         with Horizontal():
             with Vertical(id="sidebar"):
-                yield Label("IDX One Percent", id="sidebar-title")
+                yield Static(id="sidebar-spacer")
                 yield OptionList(id="sidebar-menu")
             with ContentSwitcher(id="content-area", initial="loading"):
                 yield LoadingView(id="loading")
@@ -586,13 +584,13 @@ class IDXAnalyzerApp(App[int]):
 
         # Add comparisons list
         for i, (_, (_dt1, _, m1), (dt2, _, m2)) in enumerate(self.transitions):
-            label = f"📅 {m2} {dt2.year} (from {m1})"
+            label = f"{m2} {dt2.year} (from {m1})"
             option_list.add_option(Option(label, id=f"t_{i}"))
 
         option_list.add_option(None)
-        option_list.add_option(Option("📊 Compare All Periods", id="action_all"))
-        option_list.add_option(Option("🔍 Global Search", id="action_search"))
-        option_list.add_option(Option("🚪 Exit App", id="action_exit"))
+        option_list.add_option(Option("Compare All Periods", id="action_all"))
+        option_list.add_option(Option("Global Search", id="action_search"))
+        option_list.add_option(Option("Exit App", id="action_exit"))
 
     def show_view(self, view_name: str) -> None:
         """Switch current content view."""
