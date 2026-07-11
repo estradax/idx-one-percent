@@ -15,11 +15,10 @@ from textual.containers import Horizontal, Vertical
 from textual.widgets import ContentSwitcher, Footer, Input, OptionList, Static
 from textual.widgets.option_list import Option
 
-from analyzer.data_loader import load_excel_file, parse_filename_date
-from analyzer.entity_resolver import run_comparison
+from analyzer import load_excel_file, parse_filename_date, run_comparison, search_dataframes
 from tui.compare_all_view import CompareAllView
 from tui.dashboard_view import DashboardView
-from tui.global_search_view import GlobalSearchView, search_dataframes
+from tui.global_search_view import GlobalSearchView
 from tui.loading_view import LoadingView
 
 

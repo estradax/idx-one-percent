@@ -8,6 +8,7 @@ from analyzer.reporter import (
     format_net_change_lot,
     render_dashboard,
 )
+from analyzer.search import search_dataframes
 
 __all__ = [
     "load_excel_file",
@@ -17,6 +18,7 @@ __all__ = [
     "format_change_pct",
     "format_lot_value",
     "format_net_change_lot",
+    "search_dataframes",
 ]
 
 __version__ = "0.1.0"
