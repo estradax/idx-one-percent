@@ -92,9 +92,18 @@ DashboardView, CompareAllView, GlobalSearchView, LoadingView {
     margin: 1 0 0 0;
 }
 
-#tables-scroll {
+#dashboard-tabs {
+    margin-top: 1;
+}
+
+#dashboard-switcher {
     height: 1fr;
-    layout: vertical;
+}
+
+#dashboard-switcher DataTable {
+    height: 100%;
+    max-height: 100%;
+    margin-bottom: 0;
 }
 
 DataTable {

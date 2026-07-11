@@ -22,6 +22,8 @@ from textual.widgets import (
     LoadingIndicator,
     OptionList,
     Static,
+    Tab,
+    Tabs,
 )
 from textual.widgets.option_list import Option
 
@@ -120,12 +122,16 @@ class DashboardView(Static):
             yield Label(id="db-title", classes="title-label")
             yield Label(id="db-subtitle", classes="subtitle-label")
 
-            yield Input(placeholder="🔍 Search investor or stock code in this period...", id="dashboard-search")
+            yield Input(placeholder="Search investor or stock code in this period...", id="dashboard-search")
 
-            with VerticalScroll(id="tables-scroll"):
-                yield Label("CONSOLIDATED SHAREHOLDER CHANGES", classes="section-header")
+            yield Tabs(
+                Tab("Consolidated Shareholder Changes", id="tab-changes"),
+                Tab("Resolved Name Changes (No Net Change)", id="tab-transfers"),
+                id="dashboard-tabs",
+            )
+
+            with ContentSwitcher(id="dashboard-switcher", initial="changes-table"):
                 yield DataTable(id="changes-table")
-                yield Label("RESOLVED NAME CHANGES (NO NET CHANGE)", classes="section-header", id="transfers-label")
                 yield DataTable(id="transfers-table")
 
     def on_mount(self) -> None:
@@ -267,14 +273,14 @@ class DashboardView(Static):
         if not self.transfers.empty:
             transfers_no_diff = self.transfers[self.transfers["diff"] == 0]
 
-        transfers_label = self.query_one("#transfers-label", Label)
+        tabs = self.query_one("#dashboard-tabs", Tabs)
 
         if transfers_no_diff.empty:
-            transfers_label.display = False
-            table_trans.display = False
+            tabs.display = False
+            tabs.active = "tab-changes"
+            self.query_one("#dashboard-switcher", ContentSwitcher).current = "changes-table"
         else:
-            transfers_label.display = True
-            table_trans.display = True
+            tabs.display = True
 
             if query.strip():
                 needle = query.strip().lower()
@@ -293,6 +299,15 @@ class DashboardView(Static):
                     Text.from_markup(str(r["INVESTOR_NAME_curr"])),
                     Text.from_markup(f"{r['TOTAL_HOLDING_SHARES_curr']:,.0f}"),
                 )
+
+    @on(Tabs.TabActivated, "#dashboard-tabs")
+    def handle_tab_activated(self, event: Tabs.TabActivated) -> None:
+        """Handle dashboard tab switches."""
+        switcher = self.query_one("#dashboard-switcher", ContentSwitcher)
+        if event.tab and event.tab.id == "tab-changes":
+            switcher.current = "changes-table"
+        elif event.tab and event.tab.id == "tab-transfers":
+            switcher.current = "transfers-table"
 
     @on(Input.Changed, "#dashboard-search")
     def handle_search_change(self, event: Input.Changed) -> None:
