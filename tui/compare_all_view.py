@@ -2,29 +2,89 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
+import pandas as pd
+from rich.console import Group
+from rich.table import Table
 from rich.text import Text
+from textual import on
 from textual.app import ComposeResult
-from textual.containers import Container, VerticalScroll
-from textual.widgets import Collapsible, DataTable, Label, Static
+from textual.containers import Vertical
+from textual.widgets import ContentSwitcher, DataTable, Input, Label, Static, Tab, Tabs
+from textual.widgets.data_table import RowKey
 
+from analyzer.entity_resolver import normalize_name_sorted_tokens
 from analyzer.reporter import (
-    format_change_pct,
     format_lot_value,
-    format_net_change_lot,
 )
+
+if TYPE_CHECKING:
+    from tui.app import IDXAnalyzerApp
+
+
+class NameResolver:
+    """Helper class to build chain of name changes and resolve canonical names."""
+
+    def __init__(self) -> None:
+        self.links: dict[tuple[str, str], str] = {}
+
+    def add_link(self, share_code: str, name_prev: str, name_curr: str) -> None:
+        self.links[(share_code, name_prev)] = name_curr
+
+    def resolve(self, share_code: str, name: str) -> str:
+        visited = {name}
+        curr = name
+        while (share_code, curr) in self.links:
+            next_name = self.links[(share_code, curr)]
+            if next_name in visited:  # avoid infinite loops
+                break
+            curr = next_name
+            visited.add(curr)
+        return curr
+
+
+def format_holding_with_change(prev_val: float, curr_val: float, is_first: bool = False) -> str:
+    """Format holding and its change compared to the previous period in lots."""
+    if is_first:
+        if curr_val == 0:
+            return "—"
+        return format_lot_value(curr_val)
+
+    if curr_val == 0 and prev_val == 0:
+        return "—"
+
+    curr_lots_str = format_lot_value(curr_val)
+    prev_lots_str = format_lot_value(prev_val)
+    diff_val = curr_val - prev_val
+    diff_lots_str = format_lot_value(abs(diff_val))
+
+    if curr_val == 0 and prev_val > 0:
+        return f"0 [red](-{prev_lots_str})[/red]"
+
+    if curr_val > 0 and prev_val == 0:
+        return f"{curr_lots_str} [green](+{curr_lots_str})[/green]"
+
+    if diff_val > 0:
+        return f"{curr_lots_str} [green](+{diff_lots_str})[/green]"
+    elif diff_val < 0:
+        return f"{curr_lots_str} [red](-{diff_lots_str})[/red]"
+    else:
+        return curr_lots_str
 
 
 class CompareAllView(Static):
-    """View showing all comparisons stacked using Collapsible widgets."""
+    """View showing all comparisons combined in a single dashboard layout without collapsibles."""
+
+    if TYPE_CHECKING:
+        app: IDXAnalyzerApp
 
     DEFAULT_CSS = """
     $accent: #89b4fa;
     $border: #45475a;
     $content-bg: #1e1e2e;
-    $card-bg: #181825;
-    $yellow: #f9e2af;
+    $title-color: #f5c2e7;
+    $subtle: #a6adc8;
 
     CompareAllView {
         padding: 0 1;
@@ -33,34 +93,42 @@ class CompareAllView(Static):
         width: 100%;
     }
 
-    #compare-all-scroll {
-        height: 1fr;
+    #compare-all-container {
         layout: vertical;
+        height: 100%;
     }
 
-    .section-header {
-        color: $yellow;
+    .title-label {
         text-style: bold;
-        margin: 1 0 0 0;
-    }
-
-    #collapsible-container {
-        layout: vertical;
+        color: $title-color;
         margin-top: 1;
     }
 
-    Collapsible {
+    .subtitle-label {
+        color: $subtle;
         margin-bottom: 1;
-        border: round $border;
-        background: $card-bg;
     }
 
-    Collapsible:focus {
-        border: round $accent;
+    #compare-all-search {
+        border: solid $border;
     }
 
-    Collapsible DataTable {
-        max-height: 15;
+    #compare-all-search:focus {
+        border: solid $accent;
+    }
+
+    #compare-all-tabs {
+        margin-top: 1;
+    }
+
+    #compare-all-switcher {
+        height: 1fr;
+    }
+
+    #compare-all-switcher DataTable {
+        height: 100%;
+        max-height: 100%;
+        margin-bottom: 0;
     }
 
     DataTable {
@@ -74,71 +142,405 @@ class CompareAllView(Static):
     DataTable:focus {
         border: round $accent;
     }
+
+    #compare-all-detail {
+        border: round $border;
+        background: $content-bg;
+        height: 12;
+        padding: 0 2;
+        margin-top: 1;
+    }
     """
 
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(**kwargs)
         self.comparisons_data: list[dict[str, Any]] = []
+        self.combined_changes: pd.DataFrame = pd.DataFrame()
+        self.combined_transfers: pd.DataFrame = pd.DataFrame()
+        self.master_changes: pd.DataFrame = pd.DataFrame()
+        self.sorted_files: list[tuple[Any, str, str]] = []
 
     def compose(self) -> ComposeResult:
-        with VerticalScroll(id="compare-all-scroll"):
-            yield Label("ALL HISTORICAL PERIODS COMPARISON", classes="section-header")
-            yield Container(id="collapsible-container")
+        with Vertical(id="compare-all-container"):
+            yield Label("ALL HISTORICAL PERIODS COMPARISON", classes="title-label")
+            yield Label(
+                "Overview of all period-to-period changes (Holdings & changes in Lot units; 1 Lot = 100 shares)",
+                classes="subtitle-label",
+            )
+
+            yield Input(placeholder="Search investor, stock, or period across all data...", id="compare-all-search")
+
+            yield Tabs(
+                Tab("Consolidated Shareholder Changes", id="tab-changes"),
+                Tab("Resolved Name Changes (No Net Change)", id="tab-transfers"),
+                id="compare-all-tabs",
+            )
+
+            with ContentSwitcher(id="compare-all-switcher", initial="changes-table"):
+                yield DataTable(id="changes-table")
+                yield DataTable(id="transfers-table")
+
+            yield Static(id="compare-all-detail")
+
+    def on_mount(self) -> None:
+        table_trans: DataTable[Any] = self.query_one("#transfers-table", DataTable)
+        table_trans.cursor_type = "row"
+        table_trans.add_columns(
+            "Period",
+            "Stock",
+            "Previous Name Format",
+            "Current Name Format",
+            "Holding Shares (Shares)",
+        )
+
+        detail_box = self.query_one("#compare-all-detail", Static)
+        detail_box.border_title = "Details"
+        self.reset_detail_view()
 
     def update_data(self, comparisons_data: list[dict[str, Any]]) -> None:
-        """Update comparisons data and rebuild Collapsibles."""
+        """Update comparisons data and rebuild Master DataFrames."""
         self.comparisons_data = comparisons_data
-        container = self.query_one("#collapsible-container")
 
-        # Remove existing children safely
-        for child in list(container.children):
-            child.remove()
+        # Get sorted files list from the app
+        self.sorted_files = self.app.sorted_files
 
-        if not comparisons_data:
-            container.mount(Label("No comparison data loaded.", id="compare-all-empty"))
-            return
+        # 1. Build NameResolver from transitions
+        resolver = NameResolver()
+        for data in reversed(comparisons_data):
+            transfers = data.get("transfers", pd.DataFrame())
+            if not transfers.empty:
+                for _, r in transfers.iterrows():
+                    resolver.add_link(
+                        str(r["SHARE_CODE"]),
+                        str(r["INVESTOR_NAME_prev"]),
+                        str(r["INVESTOR_NAME_curr"]),
+                    )
 
-        for idx, data in enumerate(comparisons_data):
-            title = f"📅 {data['m1']} {data['dt1'].year} ➔ {data['m2']} {data['dt2'].year}"
+        # 2. Build master holdings map
+        holdings_map: dict[tuple[str, str], list[float]] = {}
+        canonical_names: dict[tuple[str, str], str] = {}
 
-            combined = data["combined_changes"]
+        for t, (_dt, file, _m) in enumerate(self.sorted_files):
+            df = self.app.loaded_dfs.get(file, pd.DataFrame())
+            if df.empty:
+                continue
 
-            table: DataTable[Any] = DataTable(id=f"all-table-{idx}")
-            table.cursor_type = "row"
-            table.add_columns(
-                "Stock",
-                "Investor Name",
-                "Prev Shares",
-                "Prev Lot",
-                "Curr Shares",
-                "Curr Lot",
-                "Net Change",
-                "Net Change Lot",
-                "% Change",
+            # Group by SHARE_CODE and INVESTOR_NAME to get total shares
+            grp = df.groupby(["SHARE_CODE", "INVESTOR_NAME"])["TOTAL_HOLDING_SHARES"].sum().reset_index()
+
+            for _, r in grp.iterrows():
+                code = str(r["SHARE_CODE"])
+                raw_name = str(r["INVESTOR_NAME"])
+                shares = float(r["TOTAL_HOLDING_SHARES"])
+
+                # Resolve name to its canonical name
+                resolved_name = resolver.resolve(code, raw_name)
+                norm_name = normalize_name_sorted_tokens(resolved_name)
+
+                key = (code, norm_name)
+                if key not in holdings_map:
+                    holdings_map[key] = [0.0] * len(self.sorted_files)
+                holdings_map[key][t] = shares
+
+                # Keep the latest name as the canonical name
+                canonical_names[key] = resolved_name
+
+        # 3. Create master changes DataFrame
+        rows = []
+        for (code, norm_name), shares_list in holdings_map.items():
+            display_name = canonical_names.get((code, norm_name), norm_name)
+
+            # Check if there is any change across the periods
+            has_change = False
+            for i in range(len(shares_list) - 1):
+                if shares_list[i] != shares_list[i + 1]:
+                    has_change = True
+                    break
+
+            if not has_change:
+                continue
+
+            total_change = shares_list[-1] - shares_list[0]
+
+            row_dict = {
+                "SHARE_CODE": code,
+                "INVESTOR_NAME": display_name,
+                "shares_history": shares_list,
+                "total_change": total_change,
+            }
+            rows.append(row_dict)
+
+        self.master_changes = pd.DataFrame(rows)
+        if not self.master_changes.empty:
+            self.master_changes["abs_change"] = self.master_changes["total_change"].abs()
+            self.master_changes = self.master_changes.sort_values(by="abs_change", ascending=False).reset_index(
+                drop=True
             )
+        else:
+            self.master_changes = pd.DataFrame()
 
-            # Add top rows
-            for _, r in combined.iterrows():
-                diff_val = float(r["diff"])
-                diff_str = f"[green]+{diff_val:,.0f}[/green]" if diff_val > 0 else f"[red]{diff_val:,.0f}[/red]"
-                table.add_row(
+        # 4. Build combined transfers DataFrame
+        all_trans_list = []
+        for data in comparisons_data:
+            period_str = f"{data['m1']} {data['dt1'].year} ➔ {data['m2']} {data['dt2'].year}"
+            transfers = data.get("transfers", pd.DataFrame())
+            if not transfers.empty:
+                transfers_no_diff = transfers[transfers["diff"] == 0].copy()
+                if not transfers_no_diff.empty:
+                    transfers_no_diff["PERIOD"] = period_str
+                    all_trans_list.append(transfers_no_diff)
+
+        if all_trans_list:
+            self.combined_transfers = pd.concat(all_trans_list).reset_index(drop=True)
+        else:
+            self.combined_transfers = pd.DataFrame()
+
+        # Reset search input text
+        search_input = self.query_one("#compare-all-search", Input)
+        search_input.value = ""
+
+        # Populate tables
+        self.populate_tables()
+
+    def populate_tables(self, query: str = "") -> None:
+        """Filter and populate changes and transfers tables for all period comparisons."""
+        # 1. Populate changes table
+        table_changes = self.query_one("#changes-table", DataTable)
+
+        # Re-add columns dynamically based on the current sorted_files
+        table_changes.clear(columns=True)
+        table_changes.cursor_type = "row"
+        table_changes.add_column("Stock")
+        table_changes.add_column("Investor Name")
+        for dt, _, m in self.sorted_files:
+            table_changes.add_column(f"{m} {dt.year} (Lot)")
+        table_changes.add_column("Net Change (Lot)")
+
+        filtered_changes = self.master_changes
+        if query.strip() and not filtered_changes.empty:
+            needle = query.strip().lower()
+            mask = filtered_changes["SHARE_CODE"].astype(str).str.lower().str.contains(
+                needle, na=False
+            ) | filtered_changes["INVESTOR_NAME"].astype(str).str.lower().str.contains(needle, na=False)
+            filtered_changes = filtered_changes[mask]
+
+        if not filtered_changes.empty:
+            for _, r in filtered_changes.iterrows():
+                shares_list = r["shares_history"]
+
+                row_cells = [
                     Text.from_markup(str(r["SHARE_CODE"])),
                     Text.from_markup(str(r["INVESTOR_NAME"])),
-                    Text.from_markup(f"{r['TOTAL_HOLDING_SHARES_prev']:,.0f}"),
-                    Text.from_markup(format_lot_value(float(r["TOTAL_HOLDING_SHARES_prev"]))),
+                ]
+
+                # Format period columns
+                for t in range(len(shares_list)):
+                    prev_val = shares_list[t - 1] if t > 0 else 0.0
+                    curr_val = shares_list[t]
+                    cell_str = format_holding_with_change(prev_val, curr_val, is_first=(t == 0))
+                    row_cells.append(Text.from_markup(cell_str))
+
+                # Net Change column
+                diff_val = float(r["total_change"])
+                diff_str = (
+                    f"[green]+{format_lot_value(diff_val)}[/green]"
+                    if diff_val > 0
+                    else (f"[red]-{format_lot_value(abs(diff_val))}[/red]" if diff_val < 0 else "0")
+                )
+                row_cells.append(Text.from_markup(diff_str))
+
+                table_changes.add_row(*row_cells)
+
+        # 2. Populate transfers table
+        table_trans = self.query_one("#transfers-table", DataTable)
+        table_trans.clear()
+
+        filtered_trans = self.combined_transfers
+        if query.strip() and not filtered_trans.empty:
+            needle = query.strip().lower()
+            mask = (
+                filtered_trans["PERIOD"].astype(str).str.lower().str.contains(needle, na=False)
+                | filtered_trans["SHARE_CODE"].astype(str).str.lower().str.contains(needle, na=False)
+                | filtered_trans["INVESTOR_NAME_prev"].astype(str).str.lower().str.contains(needle, na=False)
+                | filtered_trans["INVESTOR_NAME_curr"].astype(str).str.lower().str.contains(needle, na=False)
+            )
+            filtered_trans = filtered_trans[mask]
+
+        if not filtered_trans.empty:
+            for _, r in filtered_trans.iterrows():
+                table_trans.add_row(
+                    Text.from_markup(str(r["PERIOD"])),
+                    Text.from_markup(str(r["SHARE_CODE"])),
+                    Text.from_markup(str(r["INVESTOR_NAME_prev"])),
+                    Text.from_markup(str(r["INVESTOR_NAME_curr"])),
                     Text.from_markup(f"{r['TOTAL_HOLDING_SHARES_curr']:,.0f}"),
-                    Text.from_markup(format_lot_value(float(r["TOTAL_HOLDING_SHARES_curr"]))),
-                    Text.from_markup(diff_str),
-                    Text.from_markup(format_net_change_lot(diff_val)),
-                    Text.from_markup(
-                        format_change_pct(float(r["TOTAL_HOLDING_SHARES_prev"]), float(r["TOTAL_HOLDING_SHARES_curr"]))
-                    ),
                 )
 
-            collapsible = Collapsible(
-                table,
-                title=title,
-                id=f"collapse-{idx}",
-                collapsed=(idx > 0),  # Expand only the first (newest) transition by default
+        # Update the detail view after populating
+        self.update_active_detail()
+
+    @on(Tabs.TabActivated, "#compare-all-tabs")
+    def handle_tab_activated(self, event: Tabs.TabActivated) -> None:
+        """Handle global tab switch."""
+        switcher = self.query_one("#compare-all-switcher", ContentSwitcher)
+        if event.tab and event.tab.id == "tab-changes":
+            switcher.current = "changes-table"
+            self.update_detail_view(self.query_one("#changes-table", DataTable))
+        elif event.tab and event.tab.id == "tab-transfers":
+            switcher.current = "transfers-table"
+            self.update_detail_view(self.query_one("#transfers-table", DataTable))
+
+    @on(Input.Changed, "#compare-all-search")
+    def handle_search_change(self, event: Input.Changed) -> None:
+        """Handle search input key changes in real time."""
+        self.populate_tables(event.value)
+
+    @on(DataTable.RowHighlighted)
+    def handle_row_highlighted(self, event: DataTable.RowHighlighted) -> None:
+        """Handle row highlighted in changes-table or transfers-table."""
+        tabs = self.query_one("#compare-all-tabs", Tabs)
+        active_tab = tabs.active if tabs else "tab-changes"
+        active_table_id = "changes-table" if active_tab == "tab-changes" else "transfers-table"
+
+        if event.data_table.id == active_table_id:
+            self.update_detail_view(event.data_table, row_key=event.row_key)
+
+    def reset_detail_view(self) -> None:
+        """Reset the detail view to its default state."""
+        detail = self.query_one("#compare-all-detail", Static)
+        detail.update(Text.from_markup("[dim]Highlight a row in the table above to see details here...[/dim]"))
+
+    def update_active_detail(self) -> None:
+        """Find the active/focused table and update the detail view."""
+        tabs = self.query_one("#compare-all-tabs", Tabs)
+        active_tab = tabs.active if tabs else "tab-changes"
+        active_table_id = "changes-table" if active_tab == "tab-changes" else "transfers-table"
+        try:
+            active_table = self.query_one(f"#{active_table_id}", DataTable)
+            self.update_detail_view(active_table)
+        except Exception:
+            self.reset_detail_view()
+
+    def update_detail_view(
+        self,
+        data_table: DataTable[Any],
+        row_key: RowKey | None = None,
+        row_index: int | None = None,
+    ) -> None:
+        """Update the detail view with the contents of the highlighted row."""
+        detail = self.query_one("#compare-all-detail", Static)
+
+        try:
+            if row_key is not None:
+                row_values = data_table.get_row(row_key)
+            elif row_index is not None:
+                row_values = data_table.get_row_at(row_index)
+            else:
+                if data_table.row_count > 0 and 0 <= data_table.cursor_row < data_table.row_count:
+                    row_values = data_table.get_row_at(data_table.cursor_row)
+                else:
+                    self.reset_detail_view()
+                    return
+        except Exception:
+            self.reset_detail_view()
+            return
+
+        columns = data_table.ordered_columns
+
+        # Build custom styled layout for each table type to make it look premium
+        if data_table.id == "changes-table" and len(row_values) >= 3:
+            stock = row_values[0]
+            investor = row_values[1]
+            net_change = row_values[-1]
+
+            header = Text.assemble(
+                ("Stock: ", "bold #a6adc8"),
+                stock,
+                ("  |  ", "dim"),
+                ("Investor: ", "bold #a6adc8"),
+                investor,
+                ("  |  ", "dim"),
+                ("Total Net Change: ", "bold #a6adc8"),
+                net_change,
+                (" Lot", "bold #a6adc8"),
             )
-            container.mount(collapsible)
+
+            # Build timeline/history
+            grid = Table.grid(expand=False, padding=(0, 4))
+            grid.add_column(style="bold #a6adc8", justify="right")
+            grid.add_column(style="default")
+
+            # Period columns are at indices 2 to len(row_values)-2
+            period_cols = data_table.ordered_columns[2:-1]
+            for col_idx, col in enumerate(period_cols):
+                col_name = col.label.plain if isinstance(col.label, Text) else str(col.label)
+                cell_value = row_values[2 + col_idx]
+                grid.add_row(f"{col_name}:", cell_value)
+
+            content = Group(header, Text(""), grid)
+            detail.update(content)
+
+        elif data_table.id == "transfers-table" and len(row_values) >= 5:
+            period = row_values[0]
+            stock = row_values[1]
+            prev_name = row_values[2]
+            curr_name = row_values[3]
+            shares = row_values[4]
+
+            header = Text.assemble(
+                ("Period: ", "bold #a6adc8"),
+                period,
+                ("  |  ", "dim"),
+                ("Stock: ", "bold #a6adc8"),
+                stock,
+                ("  |  ", "dim"),
+                ("Holding Shares: ", "bold #a6adc8"),
+                shares,
+                (" Shares", "bold #a6adc8"),
+            )
+
+            grid = Table.grid(expand=False, padding=(0, 4))
+            grid.add_column()
+            grid.add_column()
+
+            sub1 = Table.grid(padding=(0, 1))
+            sub1.add_column(style="bold #a6adc8", justify="right", no_wrap=True)
+            sub1.add_column(style="default")
+            sub1.add_row("Previous Name:", prev_name)
+
+            sub2 = Table.grid(padding=(0, 1))
+            sub2.add_column(style="bold #a6adc8", justify="right", no_wrap=True)
+            sub2.add_column(style="default")
+            sub2.add_row("Current Name:", curr_name)
+
+            grid.add_row(sub1, sub2)
+
+            content = Group(header, Text(""), grid)
+            detail.update(content)
+
+        else:
+            # Fallback for any other table structure
+            grid = Table.grid(expand=True, padding=(0, 2))
+            pairs = []
+            for col, val in zip(columns, row_values, strict=True):
+                label = col.label.plain if isinstance(col.label, Text) else str(col.label)
+                pairs.append((label, val))
+
+            num_pairs = len(pairs)
+            cols_count = 3 if num_pairs >= 6 else 2
+
+            for _ in range(cols_count):
+                grid.add_column(style="bold #a6adc8", justify="right")
+                grid.add_column(style="default", justify="left")
+
+            for i in range(0, num_pairs, cols_count):
+                row_cells = []
+                for j in range(cols_count):
+                    if i + j < num_pairs:
+                        label, val = pairs[i + j]
+                        row_cells.extend([f"{label}:", val])
+                    else:
+                        row_cells.extend(["", ""])
+                grid.add_row(*row_cells)
+
+            detail.update(grid)

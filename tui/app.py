@@ -371,6 +371,7 @@ class IDXAnalyzerApp(App[int]):
                     "dt2": dt2,
                     "file2": file2,
                     "m2": m2,
+                    "transfers": transfers,
                     "combined_changes": combined_changes,
                 }
             )
