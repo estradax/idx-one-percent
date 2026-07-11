@@ -66,6 +66,69 @@ def search_dataframes(
 class GlobalSearchView(Static):
     """View for searching across all historical reports."""
 
+    DEFAULT_CSS = """
+    $accent: #89b4fa;
+    $border: #45475a;
+    $content-bg: #1e1e2e;
+    $title-color: #f5c2e7;
+    $subtle: #a6adc8;
+    $cyan: #89dceb;
+
+    GlobalSearchView {
+        padding: 0 1;
+        layout: vertical;
+        height: 100%;
+        width: 100%;
+    }
+
+    #global-search-container {
+        layout: vertical;
+        height: 100%;
+    }
+
+    .title-label {
+        text-style: bold;
+        color: $title-color;
+        margin-top: 1;
+    }
+
+    .subtitle-label {
+        color: $subtle;
+        margin-bottom: 1;
+    }
+
+    #global-search-input {
+        border: solid $border;
+    }
+
+    #global-search-input:focus {
+        border: solid $accent;
+    }
+
+    #global-search-status {
+        margin-bottom: 1;
+        color: $cyan;
+        text-style: bold;
+    }
+
+    #global-search-table {
+        height: 1fr;
+        max-height: 100%;
+    }
+
+    DataTable {
+        height: auto;
+        max-height: 25;
+        border: round $border;
+        background: $content-bg;
+        margin-bottom: 1;
+    }
+
+    DataTable:focus {
+        border: round $accent;
+    }
+    """
+
     def compose(self) -> ComposeResult:
         with Vertical(id="global-search-container"):
             with Vertical(classes="title-card"):

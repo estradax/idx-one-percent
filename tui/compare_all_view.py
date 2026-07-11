@@ -19,6 +19,63 @@ from analyzer.reporter import (
 class CompareAllView(Static):
     """View showing all comparisons stacked using Collapsible widgets."""
 
+    DEFAULT_CSS = """
+    $accent: #89b4fa;
+    $border: #45475a;
+    $content-bg: #1e1e2e;
+    $card-bg: #181825;
+    $yellow: #f9e2af;
+
+    CompareAllView {
+        padding: 0 1;
+        layout: vertical;
+        height: 100%;
+        width: 100%;
+    }
+
+    #compare-all-scroll {
+        height: 1fr;
+        layout: vertical;
+    }
+
+    .section-header {
+        color: $yellow;
+        text-style: bold;
+        margin: 1 0 0 0;
+    }
+
+    #collapsible-container {
+        layout: vertical;
+        margin-top: 1;
+    }
+
+    Collapsible {
+        margin-bottom: 1;
+        border: round $border;
+        background: $card-bg;
+    }
+
+    Collapsible:focus {
+        border: round $accent;
+    }
+
+    Collapsible DataTable {
+        max-height: 15;
+    }
+
+    DataTable {
+        height: auto;
+        max-height: 25;
+        border: round $border;
+        background: $content-bg;
+        margin-bottom: 1;
+    }
+
+    DataTable:focus {
+        border: round $accent;
+    }
+    """
+
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(**kwargs)
         self.comparisons_data: list[dict[str, Any]] = []

@@ -26,7 +26,57 @@ from tui.loading_view import LoadingView
 class IDXAnalyzerApp(App[int]):
     """Main Textual TUI Application for IDX One Percent Shareholder Analyzer."""
 
-    CSS_PATH: ClassVar[str] = "styles.tcss"
+    CSS: ClassVar[str] = """
+    $border: #45475a;
+    $sidebar-bg: #11111b;
+    $content-bg: #1e1e2e;
+    $subtle: #a6adc8;
+    $cyan: #89dceb;
+
+    Screen {
+        background: $content-bg;
+    }
+
+    #footer {
+        background: $sidebar-bg;
+        color: $subtle;
+    }
+
+    /* Sidebar Styling */
+    #sidebar {
+        width: 32;
+        height: 100%;
+        background: $sidebar-bg;
+        border-right: solid $border;
+        layout: vertical;
+    }
+
+    #sidebar-spacer {
+        height: 1;
+        background: transparent;
+    }
+
+    .sidebar-heading {
+        padding: 1 2 0 2;
+        color: $cyan;
+        text-style: bold;
+        background: transparent;
+    }
+
+    #sidebar-menu {
+        background: transparent;
+        border: none;
+        height: 1fr;
+    }
+
+    /* Main Content Layout */
+    #content-area {
+        layout: vertical;
+        background: $content-bg;
+        width: 1fr;
+        height: 100%;
+    }
+    """
     BINDINGS: ClassVar[list[Any]] = [
         Binding("q", "quit", "Quit"),
         Binding("d", "toggle_dark", "Toggle Dark", show=False),

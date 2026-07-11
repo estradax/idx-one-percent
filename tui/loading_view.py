@@ -10,6 +10,30 @@ from textual.widgets import Label, LoadingIndicator, Static
 class LoadingView(Static):
     """A view showing a spinner and a message while loading."""
 
+    DEFAULT_CSS = """
+    $yellow: #f9e2af;
+
+    LoadingView {
+        padding: 0 1;
+        layout: vertical;
+        height: 100%;
+        width: 100%;
+    }
+
+    #loading-container {
+        align: center middle;
+        height: 1fr;
+        layout: vertical;
+    }
+
+    #loading-label {
+        margin-top: 1;
+        color: $yellow;
+        text-align: center;
+        text-style: bold;
+    }
+    """
+
     def compose(self) -> ComposeResult:
         with Vertical(id="loading-container"):
             yield LoadingIndicator()

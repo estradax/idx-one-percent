@@ -21,6 +21,71 @@ from analyzer.reporter import (
 class DashboardView(Static):
     """Widget for showing a specific period comparison dashboard."""
 
+    DEFAULT_CSS = """
+    $accent: #89b4fa;
+    $border: #45475a;
+    $content-bg: #1e1e2e;
+    $title-color: #f5c2e7;
+    $subtle: #a6adc8;
+
+    DashboardView {
+        padding: 0 1;
+        layout: vertical;
+        height: 100%;
+        width: 100%;
+    }
+
+    #dashboard-container {
+        layout: vertical;
+        height: 100%;
+    }
+
+    .title-label {
+        text-style: bold;
+        color: $title-color;
+        margin-top: 1;
+    }
+
+    .subtitle-label {
+        color: $subtle;
+        margin-bottom: 1;
+    }
+
+    #dashboard-search {
+        border: solid $border;
+    }
+
+    #dashboard-search:focus {
+        border: solid $accent;
+    }
+
+    #dashboard-tabs {
+        margin-top: 1;
+    }
+
+    #dashboard-switcher {
+        height: 1fr;
+    }
+
+    #dashboard-switcher DataTable {
+        height: 100%;
+        max-height: 100%;
+        margin-bottom: 0;
+    }
+
+    DataTable {
+        height: auto;
+        max-height: 25;
+        border: round $border;
+        background: $content-bg;
+        margin-bottom: 1;
+    }
+
+    DataTable:focus {
+        border: round $accent;
+    }
+    """
+
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(**kwargs)
         self.title_text = ""
