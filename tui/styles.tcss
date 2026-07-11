@@ -79,11 +79,11 @@ DashboardView, CompareAllView, GlobalSearchView, LoadingView {
 }
 
 #dashboard-search, #global-search-input {
-    border: tall $border;
+    border: solid $border;
 }
 
 #dashboard-search:focus, #global-search-input:focus {
-    border: tall $accent;
+    border: solid $accent;
 }
 
 .section-header {
