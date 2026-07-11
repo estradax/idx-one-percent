@@ -10,6 +10,7 @@ from typing import Any, ClassVar
 import pandas as pd
 from textual import work
 from textual.app import App, ComposeResult
+from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.widgets import ContentSwitcher, Footer, Input, OptionList, Static
 from textual.widgets.option_list import Option
@@ -27,9 +28,9 @@ class IDXAnalyzerApp(App[int]):
 
     CSS_PATH: ClassVar[str] = "styles.tcss"
     BINDINGS: ClassVar[list[Any]] = [
-        ("q", "quit", "Quit"),
-        ("d", "toggle_dark", "Toggle Dark"),
-        ("s", "focus_search", "Focus Search"),
+        Binding("q", "quit", "Quit"),
+        Binding("d", "toggle_dark", "Toggle Dark", show=False),
+        Binding("s", "focus_search", "Focus Search", show=False),
     ]
 
     def __init__(self) -> None:
@@ -52,7 +53,7 @@ class IDXAnalyzerApp(App[int]):
                 yield DashboardView(id="dashboard")
                 yield CompareAllView(id="compare_all")
                 yield GlobalSearchView(id="global_search")
-        yield Footer(id="footer")
+        yield Footer(id="footer", show_command_palette=False)
 
     def on_mount(self) -> None:
         self.title = "IDX One Percent Shareholder Analyzer"
