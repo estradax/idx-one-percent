@@ -2,12 +2,19 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import pandas as pd
+from rich.console import Group
+from rich.table import Table
 from rich.text import Text
 from textual import on
 from textual.app import ComposeResult
 from textual.containers import Vertical
 from textual.widgets import DataTable, Input, Label, Static
+from textual.widgets.data_table import RowKey
+
+from analyzer.data_loader import parse_filename_date
 
 
 def search_dataframes(
@@ -127,28 +134,41 @@ class GlobalSearchView(Static):
     DataTable:focus {
         border: round $accent;
     }
+
+    #global-search-detail {
+        border: round $border;
+        background: $content-bg;
+        height: 7;
+        padding: 0 2;
+        margin-top: 1;
+    }
     """
 
     def compose(self) -> ComposeResult:
         with Vertical(id="global-search-container"):
-            with Vertical(classes="title-card"):
-                yield Label("Global Shareholder Data Search", classes="title-label")
-                yield Label("Search for any investor name or stock code across all periods", classes="subtitle-label")
+            yield Label("Global Shareholder Data Search", classes="title-label")
+            yield Label("Search for any investor name or stock code across all periods", classes="subtitle-label")
 
             yield Input(placeholder="🔍 Type keyword and press Enter to search...", id="global-search-input")
             yield Label("Enter a search term above.", id="global-search-status")
 
             yield DataTable(id="global-search-table")
+            yield Static(id="global-search-detail")
 
     def on_mount(self) -> None:
         table = self.query_one("#global-search-table", DataTable)
         table.cursor_type = "row"
         table.add_columns("Period", "Stock", "Investor", "Change %", "Lots Change", "Details")
 
+        detail_box = self.query_one("#global-search-detail", Static)
+        detail_box.border_title = "Details"
+        self.reset_detail_view()
+
     def perform_search(self, query: str) -> None:
         """Run global search across loaded dfs and populate search table."""
         table = self.query_one("#global-search-table", DataTable)
         table.clear()
+        self.reset_detail_view()
 
         status_label = self.query_one("#global-search-status", Label)
 
@@ -175,6 +195,9 @@ class GlobalSearchView(Static):
         if not matches:
             status_label.update(Text.from_markup(f"[yellow]No matches found.[/yellow]{warning_msg}"))
             return
+
+        # Sort matches by parsed date from filename descending (newest/highest to oldest/lowest)
+        matches.sort(key=lambda x: parse_filename_date(x[0])[0], reverse=True)
 
         row_count = 0
         for filename, df in matches:
@@ -212,6 +235,7 @@ class GlobalSearchView(Static):
         status_label.update(
             Text.from_markup(f"[green]Found {row_count} matches across all loaded periods.[/green]{warning_msg}")
         )
+        self.update_detail_view(table)
 
     @on(Input.Submitted, "#global-search-input")
     def handle_global_search_submit(self, event: Input.Submitted) -> None:
@@ -223,3 +247,103 @@ class GlobalSearchView(Static):
         """Handle real-time search typing."""
         if len(event.value) >= 2 or not event.value:
             self.perform_search(event.value)
+
+    @on(DataTable.RowHighlighted)
+    def handle_row_highlighted(self, event: DataTable.RowHighlighted) -> None:
+        """Handle row highlighted in global-search-table."""
+        if event.data_table.id == "global-search-table":
+            self.update_detail_view(event.data_table, row_key=event.row_key)
+
+    def reset_detail_view(self) -> None:
+        """Reset the detail view to its default state."""
+        detail = self.query_one("#global-search-detail", Static)
+        detail.update(Text.from_markup("[dim]Highlight a row in the table above to see details here...[/dim]"))
+
+    def update_detail_view(
+        self,
+        data_table: DataTable[Any],
+        row_key: RowKey | None = None,
+        row_index: int | None = None,
+    ) -> None:
+        """Update the detail view with the contents of the highlighted row."""
+        detail = self.query_one("#global-search-detail", Static)
+
+        try:
+            if row_key is not None:
+                row_values = data_table.get_row(row_key)
+            elif row_index is not None:
+                row_values = data_table.get_row_at(row_index)
+            else:
+                if data_table.row_count > 0 and 0 <= data_table.cursor_row < data_table.row_count:
+                    row_values = data_table.get_row_at(data_table.cursor_row)
+                else:
+                    self.reset_detail_view()
+                    return
+        except Exception:
+            self.reset_detail_view()
+            return
+
+        # Columns: Period, Stock, Investor, Change %, Lots Change, Details
+        if len(row_values) >= 6:
+            period = row_values[0]
+            stock = row_values[1]
+            investor = row_values[2]
+            pct_change = row_values[3]
+            lots_change = row_values[4]
+            details_str = row_values[5]
+
+            header = Text.assemble(
+                ("Period: ", "bold #a6adc8"),
+                period,
+                ("  |  ", "dim"),
+                ("Stock: ", "bold #a6adc8"),
+                stock,
+                ("  |  ", "dim"),
+                ("Investor: ", "bold #a6adc8"),
+                investor,
+            )
+
+            details_plain = details_str.plain if isinstance(details_str, Text) else str(details_str)
+            prev_part, curr_part = "—", "—"
+            if "|" in details_plain:
+                parts = details_plain.split("|")
+                prev_part = parts[0].replace("Prev:", "").strip()
+                curr_part = parts[1].replace("Curr:", "").strip()
+
+            grid = Table.grid(expand=False, padding=(0, 4))
+            grid.add_column()
+            grid.add_column()
+            grid.add_column()
+
+            sub1 = Table.grid(padding=(0, 1))
+            sub1.add_column(style="bold #a6adc8", justify="right", no_wrap=True)
+            sub1.add_column(style="default", no_wrap=True)
+            sub1.add_row("Prev Shares:", prev_part)
+            try:
+                prev_val = float(prev_part.replace(",", ""))
+                prev_lot_str = f"{prev_val / 100.0:,.2f}"
+            except Exception:
+                prev_lot_str = "—"
+            sub1.add_row("Prev Lot:", prev_lot_str)
+
+            sub2 = Table.grid(padding=(0, 1))
+            sub2.add_column(style="bold #a6adc8", justify="right", no_wrap=True)
+            sub2.add_column(style="default", no_wrap=True)
+            sub2.add_row("Curr Shares:", curr_part)
+            try:
+                curr_val = float(curr_part.replace(",", ""))
+                curr_lot_str = f"{curr_val / 100.0:,.2f}"
+            except Exception:
+                curr_lot_str = "—"
+            sub2.add_row("Curr Lot:", curr_lot_str)
+
+            sub3 = Table.grid(padding=(0, 1))
+            sub3.add_column(style="bold #a6adc8", justify="right", no_wrap=True)
+            sub3.add_column(style="default", no_wrap=True)
+            sub3.add_row("Lots Change:", lots_change)
+            sub3.add_row("% Change:", pct_change)
+
+            grid.add_row(sub1, sub2, sub3)
+
+            content = Group(header, Text(""), grid)
+            detail.update(content)
