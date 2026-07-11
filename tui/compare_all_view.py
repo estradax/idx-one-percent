@@ -250,16 +250,6 @@ class CompareAllView(Static):
         for (code, norm_name), shares_list in holdings_map.items():
             display_name = canonical_names.get((code, norm_name), norm_name)
 
-            # Check if there is any change across the periods
-            has_change = False
-            for i in range(len(shares_list) - 1):
-                if shares_list[i] != shares_list[i + 1]:
-                    has_change = True
-                    break
-
-            if not has_change:
-                continue
-
             total_change = shares_list[-1] - shares_list[0]
 
             row_dict = {
