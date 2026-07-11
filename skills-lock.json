@@ -42,6 +42,12 @@
       "sourceType": "github",
       "skillPath": "plugins/python-development/skills/python-type-safety/SKILL.md",
       "computedHash": "16314aa8a4a465773be809c517f62f8ef704f5ab1bb237e8c9b8a759689fcb21"
+    },
+    "textual": {
+      "source": "johnlarkin1/claude-code-extensions",
+      "sourceType": "github",
+      "skillPath": "skills/textual/SKILL.md",
+      "computedHash": "ca9df5bc8ff1a7165b3bf7ef70abd6ecae14c1fdbeb81921b1469f7b51519330"
     }
   }
 }

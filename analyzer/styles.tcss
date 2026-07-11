@@ -1,0 +1,224 @@
+/* Custom color system - Catppuccin Mocha inspired premium palette */
+$accent: #89b4fa;
+$border: #45475a;
+$sidebar-bg: #11111b;
+$content-bg: #1e1e2e;
+$card-bg: #181825;
+$title-color: #f5c2e7;
+$subtle: #a6adc8;
+$cyan: #89dceb;
+$yellow: #f9e2af;
+
+Screen {
+    background: $content-bg;
+}
+
+#header {
+    background: $sidebar-bg;
+    color: $accent;
+    text-align: center;
+    text-style: bold;
+    height: 3;
+    content-align: center middle;
+    border-bottom: solid $border;
+}
+
+#footer {
+    background: $sidebar-bg;
+    color: $subtle;
+}
+
+/* Sidebar Styling */
+#sidebar {
+    width: 32;
+    height: 100%;
+    background: $sidebar-bg;
+    border-right: solid $border;
+    layout: vertical;
+}
+
+#sidebar-title {
+    padding: 1 2;
+    text-align: center;
+    background: $sidebar-bg;
+    color: $accent;
+    text-style: bold;
+    border-bottom: solid $border;
+    margin-bottom: 1;
+}
+
+.sidebar-heading {
+    padding: 1 2 0 2;
+    color: $cyan;
+    text-style: bold;
+    background: $sidebar-bg;
+}
+
+#sidebar-menu {
+    background: $sidebar-bg;
+    border: none;
+    height: 1fr;
+}
+
+#sidebar-menu OptionList {
+    background: $sidebar-bg;
+}
+
+/* Main Content Layout */
+#content-area {
+    layout: vertical;
+    background: $content-bg;
+    width: 1fr;
+    height: 100%;
+}
+
+/* Views */
+DashboardView, CompareAllView, GlobalSearchView, LoadingView {
+    padding: 1 2;
+    layout: vertical;
+    height: 100%;
+    width: 100%;
+}
+
+/* Dashboard View Components */
+#dashboard-container {
+    layout: vertical;
+    height: 100%;
+}
+
+.title-card {
+    background: $card-bg;
+    border: round $accent;
+    padding: 1 2;
+    margin-bottom: 1;
+    height: auto;
+}
+
+.title-label {
+    text-style: bold;
+    color: $title-color;
+}
+
+.subtitle-label {
+    color: $subtle;
+}
+
+.stats-container {
+    layout: horizontal;
+    height: 5;
+    margin-bottom: 1;
+}
+
+StatCard {
+    background: $card-bg;
+    border: round $border;
+    margin-right: 1;
+    padding: 0 1;
+    width: 1fr;
+    height: auto;
+    align: center middle;
+}
+
+StatCard:last-child {
+    margin-right: 0;
+}
+
+.stat-label {
+    color: $cyan;
+    text-style: bold;
+    text-align: center;
+}
+
+.stat-value {
+    color: #ffffff;
+    text-align: center;
+    text-style: bold;
+}
+
+#dashboard-search, #global-search-input {
+    margin-bottom: 1;
+    border: tall $border;
+}
+
+#dashboard-search:focus, #global-search-input:focus {
+    border: tall $accent;
+}
+
+.section-header {
+    color: $yellow;
+    text-style: bold;
+    margin: 1 0 0 0;
+}
+
+#tables-scroll {
+    height: 1fr;
+    layout: vertical;
+}
+
+DataTable {
+    height: auto;
+    max-height: 25;
+    border: round $border;
+    background: $content-bg;
+    margin-bottom: 1;
+}
+
+DataTable:focus {
+    border: round $accent;
+}
+
+/* Loading View */
+#loading-container {
+    align: center middle;
+    height: 1fr;
+    layout: vertical;
+}
+
+#loading-label {
+    margin-top: 1;
+    color: $yellow;
+    text-align: center;
+    text-style: bold;
+}
+
+/* Compare All scrollable list */
+#compare-all-scroll {
+    height: 1fr;
+    layout: vertical;
+}
+
+#collapsible-container {
+    layout: vertical;
+    margin-top: 1;
+}
+
+Collapsible {
+    margin-bottom: 1;
+    border: round $border;
+    background: $card-bg;
+}
+
+Collapsible:focus {
+    border: round $accent;
+}
+
+Collapsible DataTable {
+    max-height: 15;
+}
+
+/* Global Search styling */
+#global-search-container {
+    layout: vertical;
+    height: 100%;
+}
+
+#global-search-status {
+    margin-bottom: 1;
+    color: $cyan;
+    text-style: bold;
+}
+
+#global-search-table {
+    height: 1fr;
+    max-height: 100%;
+}
