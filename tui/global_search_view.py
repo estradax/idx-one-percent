@@ -146,10 +146,10 @@ class GlobalSearchView(Static):
 
     def compose(self) -> ComposeResult:
         with Vertical(id="global-search-container"):
-            yield Label("Global Shareholder Data Search", classes="title-label")
+            yield Label("GLOBAL SHAREHOLDER DATA SEARCH", classes="title-label")
             yield Label("Search for any investor name or stock code across all periods", classes="subtitle-label")
 
-            yield Input(placeholder="🔍 Type keyword and press Enter to search...", id="global-search-input")
+            yield Input(placeholder="Type keyword and press Enter to search...", id="global-search-input")
             yield Label("Enter a search term above.", id="global-search-status")
 
             yield DataTable(id="global-search-table")
@@ -232,9 +232,7 @@ class GlobalSearchView(Static):
                 )
                 row_count += 1
 
-        status_label.update(
-            Text.from_markup(f"[green]Found {row_count} matches across all loaded periods.[/green]{warning_msg}")
-        )
+        status_label.update(Text.from_markup(f"[green]Found {row_count} matches.[/green]{warning_msg}"))
         self.update_detail_view(table)
 
     @on(Input.Submitted, "#global-search-input")

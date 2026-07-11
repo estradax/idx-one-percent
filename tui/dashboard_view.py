@@ -221,7 +221,7 @@ class DashboardView(Static):
             self.combined_changes = pd.DataFrame()
 
         # Update metadata labels
-        self.query_one("#db-title", Label).update(title_text)
+        self.query_one("#db-title", Label).update(title_text.upper())
         self.query_one("#db-subtitle", Label).update(subtitle_text)
 
         # Reset search input text

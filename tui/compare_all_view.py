@@ -164,7 +164,7 @@ class CompareAllView(Static):
         with Vertical(id="compare-all-container"):
             yield Label("ALL HISTORICAL PERIODS COMPARISON", classes="title-label")
             yield Label(
-                "Overview of all period-to-period changes (Holdings & changes in Lot units; 1 Lot = 100 shares)",
+                "Overview of all period-to-period changes",
                 classes="subtitle-label",
             )
 

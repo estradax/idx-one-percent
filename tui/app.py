@@ -161,8 +161,8 @@ class IDXAnalyzerApp(App[int]):
             option_list.add_option(Option(label, id=f"t_{i}"))
 
         option_list.add_option(None)
-        option_list.add_option(Option("Compare All Periods", id="action_all"))
-        option_list.add_option(Option("Global Search", id="action_search"))
+        option_list.add_option(Option("All Periods", id="action_all"))
+        option_list.add_option(Option("Search", id="action_search"))
         option_list.add_option(Option("Exit App", id="action_exit"))
 
     def show_view(self, view_name: str) -> None:
