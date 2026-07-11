@@ -338,7 +338,7 @@ class DashboardView(Static):
 
     def update_detail_view(
         self,
-        data_table: DataTable,
+        data_table: DataTable[Any],
         row_key: RowKey | None = None,
         row_index: int | None = None,
     ) -> None:
