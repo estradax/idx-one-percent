@@ -78,7 +78,7 @@ class IDXAnalyzerApp(App[int]):
     }
     """
     BINDINGS: ClassVar[list[Any]] = [
-        Binding("q", "quit", "Quit"),
+        Binding("ctrl+q", "quit", "Quit"),
         Binding("d", "toggle_dark", "Toggle Dark", show=False),
         Binding("s", "focus_search", "Focus Search", show=False),
     ]
