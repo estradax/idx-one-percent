@@ -87,23 +87,6 @@ def search_dataframes(
     return matches
 
 
-class StatCard(Static):
-    """A custom widget to show summary statistics."""
-
-    def __init__(self, label: str, value: str, **kwargs: Any) -> None:
-        super().__init__(**kwargs)
-        self.label = label
-        self.value = value
-
-    def compose(self) -> ComposeResult:
-        yield Label(self.label, classes="stat-label")
-        yield Label(self.value, classes="stat-value")
-
-    def update_value(self, new_value: str) -> None:
-        """Update the displayed value."""
-        self.query_one(".stat-value", Label).update(new_value)
-
-
 class LoadingView(Static):
     """A view showing a spinner and a message while loading."""
 
@@ -134,14 +117,8 @@ class DashboardView(Static):
 
     def compose(self) -> ComposeResult:
         with Vertical(id="dashboard-container"):
-            with Vertical(classes="title-card"):
-                yield Label(id="db-title", classes="title-label")
-                yield Label(id="db-subtitle", classes="subtitle-label")
-
-            with Horizontal(classes="stats-container"):
-                yield StatCard("Active Stocks", "0", id="stat-active")
-                yield StatCard("Changes Listed", "0", id="stat-changes")
-                yield StatCard("Name Transfers", "0", id="stat-transfers")
+            yield Label(id="db-title", classes="title-label")
+            yield Label(id="db-subtitle", classes="subtitle-label")
 
             yield Input(placeholder="🔍 Search investor or stock code in this period...", id="dashboard-search")
 
@@ -243,15 +220,6 @@ class DashboardView(Static):
         # Update metadata labels
         self.query_one("#db-title", Label).update(title_text)
         self.query_one("#db-subtitle", Label).update(subtitle_text)
-
-        # Update stats cards
-        self.query_one("#stat-active", StatCard).update_value(str(active_stocks))
-        self.query_one("#stat-changes", StatCard).update_value(str(len(self.combined_changes)))
-
-        transfers_no_diff = pd.DataFrame()
-        if not transfers.empty:
-            transfers_no_diff = transfers[transfers["diff"] == 0]
-        self.query_one("#stat-transfers", StatCard).update_value(str(len(transfers_no_diff)))
 
         # Reset search input text
         search_input = self.query_one("#dashboard-search", Input)
@@ -639,7 +607,7 @@ class IDXAnalyzerApp(App[int]):
         # Setup dashboard details
         dt1, _, m1 = self.transitions[idx][1]
         dt2, _, m2 = self.transitions[idx][2]
-        title_text = f"IDX SHAREHOLDER MOVEMENT: {m1} {dt1.year} ➔ {m2} {dt2.year}"
+        title_text = f"{m1} {dt1.year} ➔ {m2} {dt2.year}"
         subtitle_text = f"Comparing {file1} and {file2}"
         active_stocks = len(df2["SHARE_CODE"].dropna().unique())
 

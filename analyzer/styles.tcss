@@ -13,8 +13,6 @@ Screen {
     background: $content-bg;
 }
 
-
-
 #footer {
     background: $sidebar-bg;
     color: $subtle;
@@ -33,8 +31,6 @@ Screen {
     height: 1;
     background: transparent;
 }
-
-
 
 .sidebar-heading {
     padding: 1 2 0 2;
@@ -59,7 +55,7 @@ Screen {
 
 /* Views */
 DashboardView, CompareAllView, GlobalSearchView, LoadingView {
-    padding: 1 2;
+    padding: 0 1;
     layout: vertical;
     height: 100%;
     width: 100%;
@@ -71,57 +67,18 @@ DashboardView, CompareAllView, GlobalSearchView, LoadingView {
     height: 100%;
 }
 
-.title-card {
-    background: $card-bg;
-    border: round $accent;
-    padding: 1 2;
-    margin-bottom: 1;
-    height: auto;
-}
-
 .title-label {
     text-style: bold;
     color: $title-color;
+    margin-top: 1;
 }
 
 .subtitle-label {
     color: $subtle;
-}
-
-.stats-container {
-    layout: horizontal;
-    height: 5;
     margin-bottom: 1;
-}
-
-StatCard {
-    background: $card-bg;
-    border: round $border;
-    margin-right: 1;
-    padding: 0 1;
-    width: 1fr;
-    height: auto;
-    align: center middle;
-}
-
-StatCard:last-child {
-    margin-right: 0;
-}
-
-.stat-label {
-    color: $cyan;
-    text-style: bold;
-    text-align: center;
-}
-
-.stat-value {
-    color: #ffffff;
-    text-align: center;
-    text-style: bold;
 }
 
 #dashboard-search, #global-search-input {
-    margin-bottom: 1;
     border: tall $border;
 }
 
