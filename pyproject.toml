@@ -16,13 +16,17 @@ dev = [
     "mypy>=2.2.0",
     "ruff>=0.15.21",
     "taskipy>=1.14.1",
+    "pytest>=8.0.0",
+    "pytest-cov>=4.1.0",
+    "pytest-asyncio>=1.4.0",
 ]
 
 [tool.taskipy.tasks]
 format = "ruff format ."
 lint = "ruff check ."
 typecheck = "mypy ."
-ci = "task format && task lint && task typecheck"
+test = "pytest"
+ci = "task format && task lint && task typecheck && task test"
 
 [tool.ruff]
 line-length = 120
@@ -43,4 +47,10 @@ ignore = ["E501"]
 python_version = "3.10"
 strict = true
 ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "--cov=analyzer --cov-report=term-missing --cov-report=html"
+
 

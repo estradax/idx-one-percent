@@ -37,6 +37,12 @@
       "skillPath": "plugins/python-development/skills/python-resource-management/SKILL.md",
       "computedHash": "255030ac16b4b20207a8916a8580551144bfdff851410b1f4bc2bedcd5cc41d9"
     },
+    "python-testing-patterns": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "skillPath": "plugins/python-development/skills/python-testing-patterns/SKILL.md",
+      "computedHash": "1306eea409e7eff2288d7658806cb508f18339a0ee9a686d324a0fd2570eae55"
+    },
     "python-type-safety": {
       "source": "wshobson/agents",
       "sourceType": "github",
