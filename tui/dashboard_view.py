@@ -467,7 +467,7 @@ class DashboardView(Static):
                 Text(stock_text, style="bold #FFFFFF"),
                 ("  |  ", "bold #45475a"),
                 ("Investor: ", "bold #FFA028"),
-                Text(investor_text, style="bold #FFFFFF")
+                Text(investor_text, style="bold #FFFFFF"),
             )
 
             grid = Table.grid(expand=False, padding=(0, 4))
@@ -510,7 +510,7 @@ class DashboardView(Static):
                 Text(stock.plain if isinstance(stock, Text) else str(stock), style="bold #FFFFFF"),
                 ("  |  ", "bold #45475a"),
                 ("Holding Shares: ", "bold #FFA028"),
-                Text(shares.plain if isinstance(shares, Text) else str(shares), style="bold #FFFF00")
+                Text(shares.plain if isinstance(shares, Text) else str(shares), style="bold #FFFF00"),
             )
 
             grid = Table.grid(expand=False, padding=(0, 4))

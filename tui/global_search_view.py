@@ -228,10 +228,14 @@ class GlobalSearchView(Static):
                 lots = diff / 100.0
 
                 change_text = (
-                    f"[#00FF00]+{pct:,.2f}%[/#00FF00]" if pct > 0 else (f"[#FF0000]{pct:,.2f}%[/#FF0000]" if pct < 0 else "0.00%")
+                    f"[#00FF00]+{pct:,.2f}%[/#00FF00]"
+                    if pct > 0
+                    else (f"[#FF0000]{pct:,.2f}%[/#FF0000]" if pct < 0 else "0.00%")
                 )
                 lots_text = (
-                    f"[#00FF00]+{lots:,.2f}[/#00FF00]" if lots > 0 else (f"[#FF0000]{lots:,.2f}[/#FF0000]" if lots < 0 else "0")
+                    f"[#00FF00]+{lots:,.2f}[/#00FF00]"
+                    if lots > 0
+                    else (f"[#FF0000]{lots:,.2f}[/#FF0000]" if lots < 0 else "0")
                 )
 
                 if pct == 100.0 and prev_shares == 0:

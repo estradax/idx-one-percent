@@ -167,7 +167,9 @@ def render_dashboard(
 
             for _, r in combined_changes.iterrows():
                 diff_val = float(r["diff"])
-                diff_str = f"[#00FF00]+{diff_val:,.0f}[/#00FF00]" if diff_val > 0 else f"[#FF0000]{diff_val:,.0f}[/#FF0000]"
+                diff_str = (
+                    f"[#00FF00]+{diff_val:,.0f}[/#00FF00]" if diff_val > 0 else f"[#FF0000]{diff_val:,.0f}[/#FF0000]"
+                )
                 table_changes.add_row(
                     str(r["SHARE_CODE"]),
                     str(r["INVESTOR_NAME"]),
