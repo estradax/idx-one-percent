@@ -19,6 +19,7 @@ dev = [
     "pytest>=8.0.0",
     "pytest-cov>=4.1.0",
     "pytest-asyncio>=1.4.0",
+    "textual-dev>=1.8.0",
 ]
 
 [tool.taskipy.tasks]
