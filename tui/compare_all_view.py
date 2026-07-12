@@ -90,7 +90,6 @@ class CompareAllView(Static):
     $bg-black: #000000;
     $primary-text: #FFA028;
     $secondary-text: #FFFFFF;
-    $electric-blue: #00FFFF;
 
     CompareAllView {
         padding: 0 1;
@@ -139,7 +138,7 @@ class CompareAllView(Static):
     }
 
     Tab.-active {
-        color: $electric-blue;
+        color: $accent;
         text-style: bold;
     }
 

@@ -36,7 +36,6 @@ class IDXAnalyzerApp(App[int]):
     $bg-black: #000000;
     $primary-text: #FFA028;
     $secondary-text: #FFFFFF;
-    $electric-blue: #00FFFF;
 
     Screen {
         background: $bg-black;
@@ -56,7 +55,7 @@ class IDXAnalyzerApp(App[int]):
 
     #footer > .footer--key {
         background: $bg-black;
-        color: $electric-blue;
+        color: $accent;
         text-style: bold;
     }
 
@@ -188,11 +187,11 @@ class IDXAnalyzerApp(App[int]):
         target_highlight_index = 0
         current_index = 0
 
-        # Add comparisons list
+        #Add comparisons list
         for i, (_, (_dt1, _, m1), (dt2, _, m2)) in enumerate(self.transitions):
             opt_id = f"t_{i}"
             if opt_id == self.active_selection_id:
-                display_label = f"➤ [bold #00FFFF]{m2} {dt2.year}[/] [dim #FFA028](from {m1})[/]"
+                display_label = f"➤ [bold #FFFF00]{m2} {dt2.year}[/] [dim #FFA028](from {m1})[/]"
                 target_highlight_index = current_index
             else:
                 display_label = f"  [#FFA028]{m2} {dt2.year}[/] [dim #FFA028](from {m1})[/]"
@@ -208,7 +207,7 @@ class IDXAnalyzerApp(App[int]):
             ("action_exit", "Exit App"),
         ]:
             if action_id == self.active_selection_id:
-                display_label = f"➤ [bold #00FFFF]{action_label}[/]"
+                display_label = f"➤ [bold #FFFF00]{action_label}[/]"
                 target_highlight_index = current_index
             else:
                 display_label = f"  [#FFA028]{action_label}[/]"

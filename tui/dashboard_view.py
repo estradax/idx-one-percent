@@ -35,7 +35,6 @@ class DashboardView(Static):
     $bg-black: #000000;
     $primary-text: #FFA028;
     $secondary-text: #FFFFFF;
-    $electric-blue: #00FFFF;
 
     DashboardView {
         padding: 0 1;
@@ -84,7 +83,7 @@ class DashboardView(Static):
     }
 
     Tab.-active {
-        color: $electric-blue;
+        color: $accent;
         text-style: bold;
     }
 

@@ -13,7 +13,6 @@ class LoadingView(Static):
     DEFAULT_CSS = """
     $bg-black: #000000;
     $primary-text: #FFA028;
-    $electric-blue: #00FFFF;
 
     LoadingView {
         padding: 0 1;
@@ -31,7 +30,7 @@ class LoadingView(Static):
     }
 
     LoadingIndicator {
-        color: $electric-blue;
+        color: $primary-text;
     }
 
     #loading-label {

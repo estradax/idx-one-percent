@@ -30,7 +30,6 @@ class GlobalSearchView(Static):
     $bg-black: #000000;
     $primary-text: #FFA028;
     $secondary-text: #FFFFFF;
-    $electric-blue: #00FFFF;
 
     GlobalSearchView {
         padding: 0 1;
@@ -69,7 +68,7 @@ class GlobalSearchView(Static):
 
     #global-search-status {
         margin-bottom: 1;
-        color: $electric-blue;
+        color: $accent;
         text-style: bold;
     }
 
