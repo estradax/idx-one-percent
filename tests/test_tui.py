@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 import pandas as pd
 import pytest
+from textual.widgets import OptionList
 
 from tui.app import IDXAnalyzerApp
 
@@ -48,7 +49,7 @@ async def test_tui_app_lifecycle(mock_shareholder_df: pd.DataFrame) -> None:
             assert len(app.transitions) == 1
 
             # Assert correct menu options exist
-            menu = app.query_one("#sidebar-menu")
+            menu = app.query_one("#sidebar-menu", OptionList)
             assert menu is not None
 
             # The active selection should default to "t_0"
