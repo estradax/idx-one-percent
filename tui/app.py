@@ -43,7 +43,7 @@ class IDXAnalyzerApp(App[int]):
 
     /* Sidebar Styling */
     #sidebar {
-        width: 32;
+        width: 38;
         height: 100%;
         background: $sidebar-bg;
         border-right: solid $border;
@@ -66,6 +66,20 @@ class IDXAnalyzerApp(App[int]):
         background: transparent;
         border: none;
         height: 1fr;
+    }
+
+    #sidebar-menu > .option-list--option {
+        padding: 0 1;
+    }
+
+    #sidebar-menu > .option-list--option-highlighted {
+        background: #313244;
+        color: #f5c2e7;
+    }
+
+    #sidebar-menu:focus > .option-list--option-highlighted {
+        background: #45475a;
+        color: #f5c2e7;
     }
 
     /* Main Content Layout */
@@ -91,6 +105,7 @@ class IDXAnalyzerApp(App[int]):
         self.loaded_dfs: dict[str, pd.DataFrame] = {}
         self.loading_in_progress: set[str] = set()
         self.current_view: str = "loading"
+        self.active_selection_id: str = "t_0"
 
     def compose(self) -> ComposeResult:
         with Horizontal():
@@ -154,15 +169,38 @@ class IDXAnalyzerApp(App[int]):
         option_list = self.query_one("#sidebar-menu", OptionList)
         option_list.clear_options()
 
+        target_highlight_index = 0
+        current_index = 0
+
         # Add comparisons list
         for i, (_, (_dt1, _, m1), (dt2, _, m2)) in enumerate(self.transitions):
-            label = f"{m2} {dt2.year} (from {m1})"
-            option_list.add_option(Option(label, id=f"t_{i}"))
+            opt_id = f"t_{i}"
+            if opt_id == self.active_selection_id:
+                display_label = f"➤ [bold #f5c2e7]{m2} {dt2.year}[/] [dim](from {m1})[/]"
+                target_highlight_index = current_index
+            else:
+                display_label = f"  {m2} {dt2.year} [dim](from {m1})[/]"
+            option_list.add_option(Option(display_label, id=opt_id))
+            current_index += 1
 
         option_list.add_option(None)
-        option_list.add_option(Option("All Periods", id="action_all"))
-        option_list.add_option(Option("Search", id="action_search"))
-        option_list.add_option(Option("Exit App", id="action_exit"))
+        current_index += 1
+
+        for action_id, action_label in [
+            ("action_all", "All Periods"),
+            ("action_search", "Search"),
+            ("action_exit", "Exit App"),
+        ]:
+            if action_id == self.active_selection_id:
+                display_label = f"➤ [bold #f5c2e7]{action_label}[/]"
+                target_highlight_index = current_index
+            else:
+                display_label = f"  {action_label}"
+            option_list.add_option(Option(display_label, id=action_id))
+            current_index += 1
+
+        if option_list.option_count > 0:
+            option_list.highlighted = target_highlight_index
 
     def show_view(self, view_name: str) -> None:
         """Switch current content view."""
@@ -389,6 +427,9 @@ class IDXAnalyzerApp(App[int]):
         if idx < 0 or idx >= len(self.transitions):
             return
 
+        self.active_selection_id = f"t_{idx}"
+        self.populate_sidebar_menu()
+
         _, period1, period2 = self.transitions[idx]
         file1 = period1[1]
         file2 = period2[1]
@@ -396,10 +437,14 @@ class IDXAnalyzerApp(App[int]):
 
     def select_compare_all(self) -> None:
         """Trigger loading and show CompareAll view."""
+        self.active_selection_id = "action_all"
+        self.populate_sidebar_menu()
         self.load_and_compare_all()
 
     def select_global_search(self) -> None:
         """Show GlobalSearch view."""
+        self.active_selection_id = "action_search"
+        self.populate_sidebar_menu()
         self.show_view("global_search")
         try:
             self.query_one("#global-search-input", Input).focus()
