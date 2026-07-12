@@ -30,14 +30,14 @@ def format_change_pct(prev: float, curr: float) -> str:
         Formatted percentage string (e.g. '+12.4%' or 'New').
     """
     if prev == 0:
-        return "[bold green]New[/bold green]"
+        return "[bold #00FF00]New[/bold #00FF00]"
     if curr == 0:
-        return "[bold red]Exited[/bold red]"
+        return "[bold #FF0000]Exited[/bold #FF0000]"
     diff = curr - prev
     pct = (diff / prev) * 100
     if pct > 0:
-        return f"[green]+{pct:,.2f}%[/green]"
-    return f"[red]{pct:,.2f}%[/red]"
+        return f"[#00FF00]+{pct:,.2f}%[/#00FF00]"
+    return f"[#FF0000]{pct:,.2f}%[/#FF0000]"
 
 
 def format_lot_value(shares: float) -> str:
@@ -58,8 +58,8 @@ def format_net_change_lot(diff: float) -> str:
     else:
         formatted = f"{lots:,.2f}".rstrip("0").rstrip(".")
     if lots > 0:
-        return f"[green]+{formatted}[/green]"
-    return f"[red]{formatted}[/red]"
+        return f"[#00FF00]+{formatted}[/#00FF00]"
+    return f"[#FF0000]{formatted}[/#FF0000]"
 
 
 def render_dashboard(
@@ -167,7 +167,7 @@ def render_dashboard(
 
             for _, r in combined_changes.iterrows():
                 diff_val = float(r["diff"])
-                diff_str = f"[green]+{diff_val:,.0f}[/green]" if diff_val > 0 else f"[red]{diff_val:,.0f}[/red]"
+                diff_str = f"[#00FF00]+{diff_val:,.0f}[/#00FF00]" if diff_val > 0 else f"[#FF0000]{diff_val:,.0f}[/#FF0000]"
                 table_changes.add_row(
                     str(r["SHARE_CODE"]),
                     str(r["INVESTOR_NAME"]),

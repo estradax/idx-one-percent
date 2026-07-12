@@ -14,10 +14,10 @@ from analyzer.reporter import (
 
 def test_format_change_pct() -> None:
     """Verify change percentage formatting under different conditions."""
-    assert format_change_pct(0, 100) == "[bold green]New[/bold green]"
-    assert format_change_pct(100, 0) == "[bold red]Exited[/bold red]"
-    assert format_change_pct(100, 150) == "[green]+50.00%[/green]"
-    assert format_change_pct(100, 50) == "[red]-50.00%[/red]"
+    assert format_change_pct(0, 100) == "[bold #00FF00]New[/bold #00FF00]"
+    assert format_change_pct(100, 0) == "[bold #FF0000]Exited[/bold #FF0000]"
+    assert format_change_pct(100, 150) == "[#00FF00]+50.00%[/#00FF00]"
+    assert format_change_pct(100, 50) == "[#FF0000]-50.00%[/#FF0000]"
 
 
 def test_format_lot_value() -> None:
@@ -31,9 +31,9 @@ def test_format_lot_value() -> None:
 def test_format_net_change_lot() -> None:
     """Verify net change is formatted correctly into styled lot units."""
     assert format_net_change_lot(0) == "0"
-    assert format_net_change_lot(10000) == "[green]+100[/green]"
-    assert format_net_change_lot(-5000) == "[red]-50[/red]"
-    assert format_net_change_lot(12345) == "[green]+123.45[/green]"
+    assert format_net_change_lot(10000) == "[#00FF00]+100[/#00FF00]"
+    assert format_net_change_lot(-5000) == "[#FF0000]-50[/#FF0000]"
+    assert format_net_change_lot(12345) == "[#00FF00]+123.45[/#00FF00]"
 
 
 def test_render_dashboard_empty(capsys: pytest.CaptureFixture[str]) -> None:
