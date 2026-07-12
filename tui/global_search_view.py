@@ -20,12 +20,17 @@ class GlobalSearchView(Static):
     """View for searching across all historical reports."""
 
     DEFAULT_CSS = """
-    $accent: #89b4fa;
+    $primary: #FFA028;
+    $accent: #FFFF00;
+    $background: #000000;
+    $surface: #000000;
+    $panel: #000000;
+    $text: #FFA028;
     $border: #45475a;
-    $content-bg: #1e1e2e;
-    $title-color: #f5c2e7;
-    $subtle: #a6adc8;
-    $cyan: #89dceb;
+    $bg-black: #000000;
+    $primary-text: #FFA028;
+    $secondary-text: #FFFFFF;
+    $electric-blue: #00FFFF;
 
     GlobalSearchView {
         padding: 0 1;
@@ -37,30 +42,34 @@ class GlobalSearchView(Static):
     #global-search-container {
         layout: vertical;
         height: 100%;
+        background: $bg-black;
     }
 
     .title-label {
         text-style: bold;
-        color: $title-color;
+        color: $primary-text;
         margin-top: 1;
     }
 
     .subtitle-label {
-        color: $subtle;
+        color: $secondary-text;
         margin-bottom: 1;
     }
 
-    #global-search-input {
+    Input {
+        background: $bg-black;
+        color: $primary-text;
         border: solid $border;
     }
 
-    #global-search-input:focus {
-        border: solid $accent;
+    Input:focus {
+        border: solid #FFFF00;
+        color: #FFFF00;
     }
 
     #global-search-status {
         margin-bottom: 1;
-        color: $cyan;
+        color: $electric-blue;
         text-style: bold;
     }
 
@@ -73,17 +82,80 @@ class GlobalSearchView(Static):
         height: auto;
         max-height: 25;
         border: round $border;
-        background: $content-bg;
+        background: $bg-black;
+        color: $primary-text;
         margin-bottom: 1;
+        scrollbar-background: #000000;
+        scrollbar-background-hover: #000000;
+        scrollbar-background-active: #000000;
+        scrollbar-color: #FFA028;
+        scrollbar-color-hover: #FFFF00;
+        scrollbar-color-active: #FFFF00;
+        scrollbar-corner-color: #000000;
     }
 
     DataTable:focus {
-        border: round $accent;
+        border: round #FFFF00;
+        background-tint: transparent;
+    }
+
+    DataTable > .datatable--header {
+        color: $secondary-text;
+        background: $bg-black;
+        text-style: bold;
+    }
+
+    DataTable > .datatable--header-hover {
+        background: #222222;
+    }
+
+    DataTable > .datatable--header-cursor {
+        background: #FFFF00;
+        color: $bg-black;
+    }
+
+    DataTable > .datatable--fixed {
+        background: $bg-black;
+        color: $secondary-text;
+    }
+
+    DataTable > .datatable--odd-row {
+        background: $bg-black;
+    }
+
+    DataTable > .datatable--even-row {
+        background: $bg-black;
+    }
+
+    DataTable > .datatable--hover {
+        background: #222222;
+    }
+
+    DataTable > .datatable--cursor {
+        background: #FFA028;
+        color: $bg-black;
+        text-style: bold;
+    }
+
+    DataTable:focus > .datatable--cursor {
+        background: #FFFF00;
+        color: $bg-black;
+        text-style: bold;
+    }
+
+    DataTable > .datatable--fixed-cursor {
+        background: #FFA028;
+        color: $bg-black;
+    }
+
+    DataTable:focus > .datatable--fixed-cursor {
+        background: #FFFF00;
+        color: $bg-black;
     }
 
     #global-search-detail {
         border: round $border;
-        background: $content-bg;
+        background: $bg-black;
         height: 7;
         padding: 0 2;
         margin-top: 1;
@@ -134,12 +206,12 @@ class GlobalSearchView(Static):
 
         warning_msg = ""
         if loaded_count < total_count:
-            warning_msg = f" [yellow](Background loading: {loaded_count}/{total_count} files ready)[/yellow]"
+            warning_msg = f" [#FFFF00](Background loading: {loaded_count}/{total_count} files ready)[/#FFFF00]"
 
         matches = app.run_global_search(query)
 
         if not matches:
-            status_label.update(Text.from_markup(f"[yellow]No matches found.[/yellow]{warning_msg}"))
+            status_label.update(Text.from_markup(f"[#FFFF00]No matches found.[/#FFFF00]{warning_msg}"))
             return
 
         # Sort matches by parsed date from filename descending (newest/highest to oldest/lowest)
@@ -156,17 +228,17 @@ class GlobalSearchView(Static):
                 lots = diff / 100.0
 
                 change_text = (
-                    f"[green]+{pct:,.2f}%[/green]" if pct > 0 else (f"[red]{pct:,.2f}%[/red]" if pct < 0 else "0.00%")
+                    f"[#00FF00]+{pct:,.2f}%[/#00FF00]" if pct > 0 else (f"[#FF0000]{pct:,.2f}%[/#FF0000]" if pct < 0 else "0.00%")
                 )
                 lots_text = (
-                    f"[green]+{lots:,.2f}[/green]" if lots > 0 else (f"[red]{lots:,.2f}[/red]" if lots < 0 else "0")
+                    f"[#00FF00]+{lots:,.2f}[/#00FF00]" if lots > 0 else (f"[#FF0000]{lots:,.2f}[/#FF0000]" if lots < 0 else "0")
                 )
 
                 if pct == 100.0 and prev_shares == 0:
-                    change_text = "[bold green]New[/bold green]"
-                    lots_text = f"[green]+{lots:,.2f}[/green]"
+                    change_text = "[bold #00FF00]New[/bold #00FF00]"
+                    lots_text = f"[#00FF00]+{lots:,.2f}[/#00FF00]"
 
-                details = f"Prev: {prev_shares:,.0f} | Curr: {curr_shares:,.0f}"
+                details = f"Prev: [#FFFF00]{prev_shares:,.0f}[/#FFFF00] | Curr: [#FFFF00]{curr_shares:,.0f}[/#FFFF00]"
 
                 table.add_row(
                     Text.from_markup(period_label),
@@ -178,7 +250,7 @@ class GlobalSearchView(Static):
                 )
                 row_count += 1
 
-        status_label.update(Text.from_markup(f"[green]Found {row_count} matches.[/green]{warning_msg}"))
+        status_label.update(Text.from_markup(f"[#00FF00]Found {row_count} matches.[/#00FF00]{warning_msg}"))
         self.update_detail_view(table)
 
     @on(Input.Submitted, "#global-search-input")
@@ -201,7 +273,7 @@ class GlobalSearchView(Static):
     def reset_detail_view(self) -> None:
         """Reset the detail view to its default state."""
         detail = self.query_one("#global-search-detail", Static)
-        detail.update(Text.from_markup("[dim]Highlight a row in the table above to see details here...[/dim]"))
+        detail.update(Text.from_markup("[#FFA028]Highlight a row in the table above to see details here...[/#FFA028]"))
 
     def update_detail_view(
         self,
@@ -237,14 +309,14 @@ class GlobalSearchView(Static):
             details_str = row_values[5]
 
             header = Text.assemble(
-                ("Period: ", "bold #a6adc8"),
-                period,
-                ("  |  ", "dim"),
-                ("Stock: ", "bold #a6adc8"),
-                stock,
-                ("  |  ", "dim"),
-                ("Investor: ", "bold #a6adc8"),
-                investor,
+                ("Period: ", "bold #FFA028"),
+                Text(period.plain if isinstance(period, Text) else str(period), style="bold #FFFFFF"),
+                ("  |  ", "bold #45475a"),
+                ("Stock: ", "bold #FFA028"),
+                Text(stock.plain if isinstance(stock, Text) else str(stock), style="bold #FFFFFF"),
+                ("  |  ", "bold #45475a"),
+                ("Investor: ", "bold #FFA028"),
+                Text(investor.plain if isinstance(investor, Text) else str(investor), style="bold #FFFFFF"),
             )
 
             details_plain = details_str.plain if isinstance(details_str, Text) else str(details_str)
@@ -260,8 +332,8 @@ class GlobalSearchView(Static):
             grid.add_column()
 
             sub1 = Table.grid(padding=(0, 1))
-            sub1.add_column(style="bold #a6adc8", justify="right", no_wrap=True)
-            sub1.add_column(style="default", no_wrap=True)
+            sub1.add_column(style="bold #FFA028", justify="right", no_wrap=True)
+            sub1.add_column(style="bold #FFFF00", no_wrap=True)
             sub1.add_row("Prev Shares:", prev_part)
             try:
                 prev_val = float(prev_part.replace(",", ""))
@@ -271,8 +343,8 @@ class GlobalSearchView(Static):
             sub1.add_row("Prev Lot:", prev_lot_str)
 
             sub2 = Table.grid(padding=(0, 1))
-            sub2.add_column(style="bold #a6adc8", justify="right", no_wrap=True)
-            sub2.add_column(style="default", no_wrap=True)
+            sub2.add_column(style="bold #FFA028", justify="right", no_wrap=True)
+            sub2.add_column(style="bold #FFFF00", no_wrap=True)
             sub2.add_row("Curr Shares:", curr_part)
             try:
                 curr_val = float(curr_part.replace(",", ""))
@@ -282,7 +354,7 @@ class GlobalSearchView(Static):
             sub2.add_row("Curr Lot:", curr_lot_str)
 
             sub3 = Table.grid(padding=(0, 1))
-            sub3.add_column(style="bold #a6adc8", justify="right", no_wrap=True)
+            sub3.add_column(style="bold #FFA028", justify="right", no_wrap=True)
             sub3.add_column(style="default", no_wrap=True)
             sub3.add_row("Lots Change:", lots_change)
             sub3.add_row("% Change:", pct_change)

@@ -11,24 +11,32 @@ class LoadingView(Static):
     """A view showing a spinner and a message while loading."""
 
     DEFAULT_CSS = """
-    $yellow: #f9e2af;
+    $bg-black: #000000;
+    $primary-text: #FFA028;
+    $electric-blue: #00FFFF;
 
     LoadingView {
         padding: 0 1;
         layout: vertical;
         height: 100%;
         width: 100%;
+        background: $bg-black;
     }
 
     #loading-container {
         align: center middle;
         height: 1fr;
         layout: vertical;
+        background: $bg-black;
+    }
+
+    LoadingIndicator {
+        color: $electric-blue;
     }
 
     #loading-label {
         margin-top: 1;
-        color: $yellow;
+        color: $primary-text;
         text-align: center;
         text-style: bold;
     }

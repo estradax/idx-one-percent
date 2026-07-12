@@ -49,7 +49,7 @@ def format_holding_with_change(prev_val: float, curr_val: float, is_first: bool 
     if is_first:
         if curr_val == 0:
             return "—"
-        return format_lot_value(curr_val)
+        return f"[#FFFF00]{format_lot_value(curr_val)}[/#FFFF00]"
 
     if curr_val == 0 and prev_val == 0:
         return "—"
@@ -60,17 +60,17 @@ def format_holding_with_change(prev_val: float, curr_val: float, is_first: bool 
     diff_lots_str = format_lot_value(abs(diff_val))
 
     if curr_val == 0 and prev_val > 0:
-        return f"0 [red](-{prev_lots_str})[/red]"
+        return f"[#FFFF00]0[/#FFFF00] [#FF0000](-{prev_lots_str})[/#FF0000]"
 
     if curr_val > 0 and prev_val == 0:
-        return f"{curr_lots_str} [green](+{curr_lots_str})[/green]"
+        return f"[#FFFF00]{curr_lots_str}[/#FFFF00] [#00FF00](+{curr_lots_str})[/#00FF00]"
 
     if diff_val > 0:
-        return f"{curr_lots_str} [green](+{diff_lots_str})[/green]"
+        return f"[#FFFF00]{curr_lots_str}[/#FFFF00] [#00FF00](+{diff_lots_str})[/#00FF00]"
     elif diff_val < 0:
-        return f"{curr_lots_str} [red](-{diff_lots_str})[/red]"
+        return f"[#FFFF00]{curr_lots_str}[/#FFFF00] [#FF0000](-{diff_lots_str})[/#FF0000]"
     else:
-        return curr_lots_str
+        return f"[#FFFF00]{curr_lots_str}[/#FFFF00]"
 
 
 class CompareAllView(Static):
@@ -80,11 +80,17 @@ class CompareAllView(Static):
         app: IDXAnalyzerApp
 
     DEFAULT_CSS = """
-    $accent: #89b4fa;
+    $primary: #FFA028;
+    $accent: #FFFF00;
+    $background: #000000;
+    $surface: #000000;
+    $panel: #000000;
+    $text: #FFA028;
     $border: #45475a;
-    $content-bg: #1e1e2e;
-    $title-color: #f5c2e7;
-    $subtle: #a6adc8;
+    $bg-black: #000000;
+    $primary-text: #FFA028;
+    $secondary-text: #FFFFFF;
+    $electric-blue: #00FFFF;
 
     CompareAllView {
         padding: 0 1;
@@ -96,29 +102,45 @@ class CompareAllView(Static):
     #compare-all-container {
         layout: vertical;
         height: 100%;
+        background: $bg-black;
     }
 
     .title-label {
         text-style: bold;
-        color: $title-color;
+        color: $primary-text;
         margin-top: 1;
     }
 
     .subtitle-label {
-        color: $subtle;
+        color: $secondary-text;
         margin-bottom: 1;
     }
 
-    #compare-all-search {
+    Input {
+        background: $bg-black;
+        color: $primary-text;
         border: solid $border;
     }
 
-    #compare-all-search:focus {
-        border: solid $accent;
+    Input:focus {
+        border: solid #FFFF00;
+        color: #FFFF00;
     }
 
     #compare-all-tabs {
         margin-top: 1;
+        background: $bg-black;
+        color: $primary-text;
+    }
+
+    Tab {
+        background: $bg-black;
+        color: $primary-text;
+    }
+
+    Tab.-active {
+        color: $electric-blue;
+        text-style: bold;
     }
 
     #compare-all-switcher {
@@ -135,17 +157,80 @@ class CompareAllView(Static):
         height: auto;
         max-height: 25;
         border: round $border;
-        background: $content-bg;
+        background: $bg-black;
+        color: $primary-text;
         margin-bottom: 1;
+        scrollbar-background: #000000;
+        scrollbar-background-hover: #000000;
+        scrollbar-background-active: #000000;
+        scrollbar-color: #FFA028;
+        scrollbar-color-hover: #FFFF00;
+        scrollbar-color-active: #FFFF00;
+        scrollbar-corner-color: #000000;
     }
 
     DataTable:focus {
-        border: round $accent;
+        border: round #FFFF00;
+        background-tint: transparent;
+    }
+
+    DataTable > .datatable--header {
+        color: $secondary-text;
+        background: $bg-black;
+        text-style: bold;
+    }
+
+    DataTable > .datatable--header-hover {
+        background: #222222;
+    }
+
+    DataTable > .datatable--header-cursor {
+        background: #FFFF00;
+        color: $bg-black;
+    }
+
+    DataTable > .datatable--fixed {
+        background: $bg-black;
+        color: $secondary-text;
+    }
+
+    DataTable > .datatable--odd-row {
+        background: $bg-black;
+    }
+
+    DataTable > .datatable--even-row {
+        background: $bg-black;
+    }
+
+    DataTable > .datatable--hover {
+        background: #222222;
+    }
+
+    DataTable > .datatable--cursor {
+        background: #FFA028;
+        color: $bg-black;
+        text-style: bold;
+    }
+
+    DataTable:focus > .datatable--cursor {
+        background: #FFFF00;
+        color: $bg-black;
+        text-style: bold;
+    }
+
+    DataTable > .datatable--fixed-cursor {
+        background: #FFA028;
+        color: $bg-black;
+    }
+
+    DataTable:focus > .datatable--fixed-cursor {
+        background: #FFFF00;
+        color: $bg-black;
     }
 
     #compare-all-detail {
         border: round $border;
-        background: $content-bg;
+        background: $bg-black;
         height: 12;
         padding: 0 2;
         margin-top: 1;
@@ -333,9 +418,9 @@ class CompareAllView(Static):
                 # Net Change column
                 diff_val = float(r["total_change"])
                 diff_str = (
-                    f"[green]+{format_lot_value(diff_val)}[/green]"
+                    f"[#00FF00]+{format_lot_value(diff_val)}[/#00FF00]"
                     if diff_val > 0
-                    else (f"[red]-{format_lot_value(abs(diff_val))}[/red]" if diff_val < 0 else "0")
+                    else (f"[#FF0000]-{format_lot_value(abs(diff_val))}[/#FF0000]" if diff_val < 0 else "0")
                 )
                 row_cells.append(Text.from_markup(diff_str))
 
@@ -363,7 +448,7 @@ class CompareAllView(Static):
                     Text.from_markup(str(r["SHARE_CODE"])),
                     Text.from_markup(str(r["INVESTOR_NAME_prev"])),
                     Text.from_markup(str(r["INVESTOR_NAME_curr"])),
-                    Text.from_markup(f"{r['TOTAL_HOLDING_SHARES_curr']:,.0f}"),
+                    Text.from_markup(f"[#FFFF00]{r['TOTAL_HOLDING_SHARES_curr']:,.0f}[/#FFFF00]"),
                 )
 
         # Update the detail view after populating
@@ -398,7 +483,7 @@ class CompareAllView(Static):
     def reset_detail_view(self) -> None:
         """Reset the detail view to its default state."""
         detail = self.query_one("#compare-all-detail", Static)
-        detail.update(Text.from_markup("[dim]Highlight a row in the table above to see details here...[/dim]"))
+        detail.update(Text.from_markup("[#FFA028]Highlight a row in the table above to see details here...[/#FFA028]"))
 
     def update_active_detail(self) -> None:
         """Find the active/focused table and update the detail view."""
@@ -443,21 +528,24 @@ class CompareAllView(Static):
             investor = row_values[1]
             net_change = row_values[-1]
 
+            stock_text = stock.plain if isinstance(stock, Text) else str(stock)
+            investor_text = investor.plain if isinstance(investor, Text) else str(investor)
+
             header = Text.assemble(
-                ("Stock: ", "bold #a6adc8"),
-                stock,
-                ("  |  ", "dim"),
-                ("Investor: ", "bold #a6adc8"),
-                investor,
-                ("  |  ", "dim"),
-                ("Total Net Change: ", "bold #a6adc8"),
+                ("Stock: ", "bold #FFA028"),
+                Text(stock_text, style="bold #FFFFFF"),
+                ("  |  ", "bold #45475a"),
+                ("Investor: ", "bold #FFA028"),
+                Text(investor_text, style="bold #FFFFFF"),
+                ("  |  ", "bold #45475a"),
+                ("Total Net Change: ", "bold #FFA028"),
                 net_change,
-                (" Lot", "bold #a6adc8"),
+                (" Lot", "bold #FFA028"),
             )
 
             # Build timeline/history
             grid = Table.grid(expand=False, padding=(0, 4))
-            grid.add_column(style="bold #a6adc8", justify="right")
+            grid.add_column(style="bold #FFA028", justify="right")
             grid.add_column(style="default")
 
             # Period columns are at indices 2 to len(row_values)-2
@@ -478,15 +566,15 @@ class CompareAllView(Static):
             shares = row_values[4]
 
             header = Text.assemble(
-                ("Period: ", "bold #a6adc8"),
-                period,
-                ("  |  ", "dim"),
-                ("Stock: ", "bold #a6adc8"),
-                stock,
-                ("  |  ", "dim"),
-                ("Holding Shares: ", "bold #a6adc8"),
-                shares,
-                (" Shares", "bold #a6adc8"),
+                ("Period: ", "bold #FFA028"),
+                Text(period.plain if isinstance(period, Text) else str(period), style="bold #FFFFFF"),
+                ("  |  ", "bold #45475a"),
+                ("Stock: ", "bold #FFA028"),
+                Text(stock.plain if isinstance(stock, Text) else str(stock), style="bold #FFFFFF"),
+                ("  |  ", "bold #45475a"),
+                ("Holding Shares: ", "bold #FFA028"),
+                Text(shares.plain if isinstance(shares, Text) else str(shares), style="bold #FFFF00"),
+                (" Shares", "bold #FFA028"),
             )
 
             grid = Table.grid(expand=False, padding=(0, 4))
@@ -494,14 +582,14 @@ class CompareAllView(Static):
             grid.add_column()
 
             sub1 = Table.grid(padding=(0, 1))
-            sub1.add_column(style="bold #a6adc8", justify="right", no_wrap=True)
-            sub1.add_column(style="default")
-            sub1.add_row("Previous Name:", prev_name)
+            sub1.add_column(style="bold #FFA028", justify="right", no_wrap=True)
+            sub1.add_column(style="bold #FFFFFF")
+            sub1.add_row("Previous Name:", prev_name.plain if isinstance(prev_name, Text) else str(prev_name))
 
             sub2 = Table.grid(padding=(0, 1))
-            sub2.add_column(style="bold #a6adc8", justify="right", no_wrap=True)
-            sub2.add_column(style="default")
-            sub2.add_row("Current Name:", curr_name)
+            sub2.add_column(style="bold #FFA028", justify="right", no_wrap=True)
+            sub2.add_column(style="bold #FFFFFF")
+            sub2.add_row("Current Name:", curr_name.plain if isinstance(curr_name, Text) else str(curr_name))
 
             grid.add_row(sub1, sub2)
 

@@ -25,11 +25,17 @@ class DashboardView(Static):
     """Widget for showing a specific period comparison dashboard."""
 
     DEFAULT_CSS = """
-    $accent: #89b4fa;
+    $primary: #FFA028;
+    $accent: #FFFF00;
+    $background: #000000;
+    $surface: #000000;
+    $panel: #000000;
+    $text: #FFA028;
     $border: #45475a;
-    $content-bg: #1e1e2e;
-    $title-color: #f5c2e7;
-    $subtle: #a6adc8;
+    $bg-black: #000000;
+    $primary-text: #FFA028;
+    $secondary-text: #FFFFFF;
+    $electric-blue: #00FFFF;
 
     DashboardView {
         padding: 0 1;
@@ -41,29 +47,45 @@ class DashboardView(Static):
     #dashboard-container {
         layout: vertical;
         height: 100%;
+        background: $bg-black;
     }
 
     .title-label {
         text-style: bold;
-        color: $title-color;
+        color: $primary-text;
         margin-top: 1;
     }
 
     .subtitle-label {
-        color: $subtle;
+        color: $secondary-text;
         margin-bottom: 1;
     }
 
-    #dashboard-search {
+    Input {
+        background: $bg-black;
+        color: $primary-text;
         border: solid $border;
     }
 
-    #dashboard-search:focus {
-        border: solid $accent;
+    Input:focus {
+        border: solid #FFFF00;
+        color: #FFFF00;
     }
 
     #dashboard-tabs {
         margin-top: 1;
+        background: $bg-black;
+        color: $primary-text;
+    }
+
+    Tab {
+        background: $bg-black;
+        color: $primary-text;
+    }
+
+    Tab.-active {
+        color: $electric-blue;
+        text-style: bold;
     }
 
     #dashboard-switcher {
@@ -80,17 +102,80 @@ class DashboardView(Static):
         height: auto;
         max-height: 25;
         border: round $border;
-        background: $content-bg;
+        background: $bg-black;
+        color: $primary-text;
         margin-bottom: 1;
+        scrollbar-background: #000000;
+        scrollbar-background-hover: #000000;
+        scrollbar-background-active: #000000;
+        scrollbar-color: #FFA028;
+        scrollbar-color-hover: #FFFF00;
+        scrollbar-color-active: #FFFF00;
+        scrollbar-corner-color: #000000;
     }
 
     DataTable:focus {
-        border: round $accent;
+        border: round #FFFF00;
+        background-tint: transparent;
+    }
+
+    DataTable > .datatable--header {
+        color: $secondary-text;
+        background: $bg-black;
+        text-style: bold;
+    }
+
+    DataTable > .datatable--header-hover {
+        background: #222222;
+    }
+
+    DataTable > .datatable--header-cursor {
+        background: #FFFF00;
+        color: $bg-black;
+    }
+
+    DataTable > .datatable--fixed {
+        background: $bg-black;
+        color: $secondary-text;
+    }
+
+    DataTable > .datatable--odd-row {
+        background: $bg-black;
+    }
+
+    DataTable > .datatable--even-row {
+        background: $bg-black;
+    }
+
+    DataTable > .datatable--hover {
+        background: #222222;
+    }
+
+    DataTable > .datatable--cursor {
+        background: #FFA028;
+        color: $bg-black;
+        text-style: bold;
+    }
+
+    DataTable:focus > .datatable--cursor {
+        background: #FFFF00;
+        color: $bg-black;
+        text-style: bold;
+    }
+
+    DataTable > .datatable--fixed-cursor {
+        background: #FFA028;
+        color: $bg-black;
+    }
+
+    DataTable:focus > .datatable--fixed-cursor {
+        background: #FFFF00;
+        color: $bg-black;
     }
 
     #dashboard-detail {
         border: round $border;
-        background: $content-bg;
+        background: $bg-black;
         height: 7;
         padding: 0 2;
         margin-top: 1;
@@ -246,15 +331,15 @@ class DashboardView(Static):
 
         for _, r in filtered_changes.iterrows():
             diff_val = float(r["diff"])
-            diff_str = f"[green]+{diff_val:,.0f}[/green]" if diff_val > 0 else f"[red]{diff_val:,.0f}[/red]"
+            diff_str = f"[#00FF00]+{diff_val:,.0f}[/#00FF00]" if diff_val > 0 else f"[#FF0000]{diff_val:,.0f}[/#FF0000]"
 
             table_changes.add_row(
                 Text.from_markup(str(r["SHARE_CODE"])),
                 Text.from_markup(str(r["INVESTOR_NAME"])),
-                Text.from_markup(f"{r['TOTAL_HOLDING_SHARES_prev']:,.0f}"),
-                Text.from_markup(format_lot_value(float(r["TOTAL_HOLDING_SHARES_prev"]))),
-                Text.from_markup(f"{r['TOTAL_HOLDING_SHARES_curr']:,.0f}"),
-                Text.from_markup(format_lot_value(float(r["TOTAL_HOLDING_SHARES_curr"]))),
+                Text.from_markup(f"[#FFFF00]{r['TOTAL_HOLDING_SHARES_prev']:,.0f}[/#FFFF00]"),
+                Text.from_markup(f"[#FFFF00]{format_lot_value(float(r['TOTAL_HOLDING_SHARES_prev']))}[/#FFFF00]"),
+                Text.from_markup(f"[#FFFF00]{r['TOTAL_HOLDING_SHARES_curr']:,.0f}[/#FFFF00]"),
+                Text.from_markup(f"[#FFFF00]{format_lot_value(float(r['TOTAL_HOLDING_SHARES_curr']))}[/#FFFF00]"),
                 Text.from_markup(diff_str),
                 Text.from_markup(format_net_change_lot(diff_val)),
                 Text.from_markup(
@@ -294,7 +379,7 @@ class DashboardView(Static):
                     Text.from_markup(str(r["SHARE_CODE"])),
                     Text.from_markup(str(r["INVESTOR_NAME_prev"])),
                     Text.from_markup(str(r["INVESTOR_NAME_curr"])),
-                    Text.from_markup(f"{r['TOTAL_HOLDING_SHARES_curr']:,.0f}"),
+                    Text.from_markup(f"[#FFFF00]{r['TOTAL_HOLDING_SHARES_curr']:,.0f}[/#FFFF00]"),
                 )
 
         # Update detail view based on active tab
@@ -334,7 +419,7 @@ class DashboardView(Static):
     def reset_detail_view(self) -> None:
         """Reset the detail view to its default state."""
         detail = self.query_one("#dashboard-detail", Static)
-        detail.update(Text.from_markup("[dim]Highlight a row in the table above to see details here...[/dim]"))
+        detail.update(Text.from_markup("[#FFA028]Highlight a row in the table above to see details here...[/#FFA028]"))
 
     def update_detail_view(
         self,
@@ -374,8 +459,15 @@ class DashboardView(Static):
             net_change_lot = row_values[7]
             pct_change = row_values[8]
 
+            stock_text = stock.plain if isinstance(stock, Text) else str(stock)
+            investor_text = investor.plain if isinstance(investor, Text) else str(investor)
+
             header = Text.assemble(
-                ("Stock: ", "bold #a6adc8"), stock, ("  |  ", "dim"), ("Investor: ", "bold #a6adc8"), investor
+                ("Stock: ", "bold #FFA028"),
+                Text(stock_text, style="bold #FFFFFF"),
+                ("  |  ", "bold #45475a"),
+                ("Investor: ", "bold #FFA028"),
+                Text(investor_text, style="bold #FFFFFF")
             )
 
             grid = Table.grid(expand=False, padding=(0, 4))
@@ -384,19 +476,19 @@ class DashboardView(Static):
             grid.add_column()
 
             sub1 = Table.grid(padding=(0, 1))
-            sub1.add_column(style="bold #a6adc8", justify="right", no_wrap=True)
-            sub1.add_column(style="default", no_wrap=True)
-            sub1.add_row("Prev Shares:", prev_shares)
-            sub1.add_row("Prev Lot:", prev_lot)
+            sub1.add_column(style="bold #FFA028", justify="right", no_wrap=True)
+            sub1.add_column(style="bold #FFFF00", no_wrap=True)
+            sub1.add_row("Prev Shares:", prev_shares.plain if isinstance(prev_shares, Text) else str(prev_shares))
+            sub1.add_row("Prev Lot:", prev_lot.plain if isinstance(prev_lot, Text) else str(prev_lot))
 
             sub2 = Table.grid(padding=(0, 1))
-            sub2.add_column(style="bold #a6adc8", justify="right", no_wrap=True)
-            sub2.add_column(style="default", no_wrap=True)
-            sub2.add_row("Curr Shares:", curr_shares)
-            sub2.add_row("Curr Lot:", curr_lot)
+            sub2.add_column(style="bold #FFA028", justify="right", no_wrap=True)
+            sub2.add_column(style="bold #FFFF00", no_wrap=True)
+            sub2.add_row("Curr Shares:", curr_shares.plain if isinstance(curr_shares, Text) else str(curr_shares))
+            sub2.add_row("Curr Lot:", curr_lot.plain if isinstance(curr_lot, Text) else str(curr_lot))
 
             sub3 = Table.grid(padding=(0, 1))
-            sub3.add_column(style="bold #a6adc8", justify="right", no_wrap=True)
+            sub3.add_column(style="bold #FFA028", justify="right", no_wrap=True)
             sub3.add_column(style="default", no_wrap=True)
             sub3.add_row("Net Change:", net_change)
             sub3.add_row("Net Change Lot:", net_change_lot)
@@ -414,7 +506,11 @@ class DashboardView(Static):
             shares = row_values[3]
 
             header = Text.assemble(
-                ("Stock: ", "bold #a6adc8"), stock, ("  |  ", "dim"), ("Holding Shares: ", "bold #a6adc8"), shares
+                ("Stock: ", "bold #FFA028"),
+                Text(stock.plain if isinstance(stock, Text) else str(stock), style="bold #FFFFFF"),
+                ("  |  ", "bold #45475a"),
+                ("Holding Shares: ", "bold #FFA028"),
+                Text(shares.plain if isinstance(shares, Text) else str(shares), style="bold #FFFF00")
             )
 
             grid = Table.grid(expand=False, padding=(0, 4))
@@ -422,14 +518,14 @@ class DashboardView(Static):
             grid.add_column()
 
             sub1 = Table.grid(padding=(0, 1))
-            sub1.add_column(style="bold #a6adc8", justify="right", no_wrap=True)
-            sub1.add_column(style="default")
-            sub1.add_row("Previous Name:", prev_name)
+            sub1.add_column(style="bold #FFA028", justify="right", no_wrap=True)
+            sub1.add_column(style="bold #FFFFFF")
+            sub1.add_row("Previous Name:", prev_name.plain if isinstance(prev_name, Text) else str(prev_name))
 
             sub2 = Table.grid(padding=(0, 1))
-            sub2.add_column(style="bold #a6adc8", justify="right", no_wrap=True)
-            sub2.add_column(style="default")
-            sub2.add_row("Current Name:", curr_name)
+            sub2.add_column(style="bold #FFA028", justify="right", no_wrap=True)
+            sub2.add_column(style="bold #FFFFFF")
+            sub2.add_row("Current Name:", curr_name.plain if isinstance(curr_name, Text) else str(curr_name))
 
             grid.add_row(sub1, sub2)
 
