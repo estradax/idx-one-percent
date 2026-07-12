@@ -20,32 +20,22 @@ from tui.compare_all_view import CompareAllView
 from tui.dashboard_view import DashboardView
 from tui.global_search_view import GlobalSearchView
 from tui.loading_view import LoadingView
+from tui.theme import bloomberg_terminal_theme
 
 
 class IDXAnalyzerApp(App[int]):
     """Main Textual TUI Application for IDX One Percent Shareholder Analyzer."""
 
     CSS: ClassVar[str] = """
-    $primary: #FFA028;
-    $accent: #FFFF00;
-    $background: #000000;
-    $surface: #000000;
-    $panel: #000000;
-    $text: #FFA028;
-    $border: #45475a;
-    $bg-black: #000000;
-    $primary-text: #FFA028;
-    $secondary-text: #FFFFFF;
-
     Screen {
         background: $bg-black;
-        scrollbar-background: #000000;
-        scrollbar-background-hover: #000000;
-        scrollbar-background-active: #000000;
-        scrollbar-color: #FFA028;
-        scrollbar-color-hover: #FFFF00;
-        scrollbar-color-active: #FFFF00;
-        scrollbar-corner-color: #000000;
+        scrollbar-background: $background;
+        scrollbar-background-hover: $background;
+        scrollbar-background-active: $background;
+        scrollbar-color: $primary;
+        scrollbar-color-hover: $accent;
+        scrollbar-color-active: $accent;
+        scrollbar-corner-color: $background;
     }
 
     #footer {
@@ -122,6 +112,16 @@ class IDXAnalyzerApp(App[int]):
         self.current_view: str = "loading"
         self.active_selection_id: str = "t_0"
 
+    def get_theme_variable_defaults(self) -> dict[str, str]:
+        """Provide fallback values for CSS variable compilation."""
+        return {
+            "border": "#555555",
+            "border-blurred": "#444444",
+            "bg-black": "#000000",
+            "primary-text": "#FFA028",
+            "secondary-text": "#FFFFFF",
+        }
+
     def compose(self) -> ComposeResult:
         with Horizontal():
             with Vertical(id="sidebar"):
@@ -136,7 +136,8 @@ class IDXAnalyzerApp(App[int]):
 
     def on_mount(self) -> None:
         self.title = "IDX One Percent Shareholder Analyzer"
-        self.theme = "textual-dark"
+        self.register_theme(bloomberg_terminal_theme)
+        self.theme = "bloomberg-terminal"
 
         # Locate project paths
         project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -187,7 +188,7 @@ class IDXAnalyzerApp(App[int]):
         target_highlight_index = 0
         current_index = 0
 
-        #Add comparisons list
+        # Add comparisons list
         for i, (_, (_dt1, _, m1), (dt2, _, m2)) in enumerate(self.transitions):
             opt_id = f"t_{i}"
             if opt_id == self.active_selection_id:

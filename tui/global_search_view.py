@@ -20,17 +20,6 @@ class GlobalSearchView(Static):
     """View for searching across all historical reports."""
 
     DEFAULT_CSS = """
-    $primary: #FFA028;
-    $accent: #FFFF00;
-    $background: #000000;
-    $surface: #000000;
-    $panel: #000000;
-    $text: #FFA028;
-    $border: #45475a;
-    $bg-black: #000000;
-    $primary-text: #FFA028;
-    $secondary-text: #FFFFFF;
-
     GlobalSearchView {
         padding: 0 1;
         layout: vertical;
@@ -62,8 +51,8 @@ class GlobalSearchView(Static):
     }
 
     Input:focus {
-        border: solid #FFFF00;
-        color: #FFFF00;
+        border: solid $accent;
+        color: $accent;
     }
 
     #global-search-status {
@@ -84,17 +73,17 @@ class GlobalSearchView(Static):
         background: $bg-black;
         color: $primary-text;
         margin-bottom: 1;
-        scrollbar-background: #000000;
-        scrollbar-background-hover: #000000;
-        scrollbar-background-active: #000000;
-        scrollbar-color: #FFA028;
-        scrollbar-color-hover: #FFFF00;
-        scrollbar-color-active: #FFFF00;
-        scrollbar-corner-color: #000000;
+        scrollbar-background: $background;
+        scrollbar-background-hover: $background;
+        scrollbar-background-active: $background;
+        scrollbar-color: $primary;
+        scrollbar-color-hover: $accent;
+        scrollbar-color-active: $accent;
+        scrollbar-corner-color: $background;
     }
 
     DataTable:focus {
-        border: round #FFFF00;
+        border: round $accent;
         background-tint: transparent;
     }
 
@@ -109,7 +98,7 @@ class GlobalSearchView(Static):
     }
 
     DataTable > .datatable--header-cursor {
-        background: #FFFF00;
+        background: $accent;
         color: $bg-black;
     }
 
@@ -131,25 +120,21 @@ class GlobalSearchView(Static):
     }
 
     DataTable > .datatable--cursor {
-        background: #FFA028;
-        color: $bg-black;
+        background: #222222;
         text-style: bold;
     }
 
     DataTable:focus > .datatable--cursor {
-        background: #FFFF00;
-        color: $bg-black;
+        background: #333333;
         text-style: bold;
     }
 
     DataTable > .datatable--fixed-cursor {
-        background: #FFA028;
-        color: $bg-black;
+        background: #222222;
     }
 
     DataTable:focus > .datatable--fixed-cursor {
-        background: #FFFF00;
-        color: $bg-black;
+        background: #333333;
     }
 
     #global-search-detail {

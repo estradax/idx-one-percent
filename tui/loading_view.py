@@ -11,9 +11,6 @@ class LoadingView(Static):
     """A view showing a spinner and a message while loading."""
 
     DEFAULT_CSS = """
-    $bg-black: #000000;
-    $primary-text: #FFA028;
-
     LoadingView {
         padding: 0 1;
         layout: vertical;
