@@ -13,4 +13,8 @@ wheels/
 .mypy_cache/
 .pytest_cache/
 .ruff_cache/
-.agents/
+
+# Coverage
+.coverage
+htmlcov/
+htmlconv/
